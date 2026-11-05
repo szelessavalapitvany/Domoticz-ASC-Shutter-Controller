@@ -1,0 +1,2578 @@
+<script>
+	var address = window.location.hostname;
+	var port = window.location.port;
+	var proto = window.location.protocol + '//';
+
+	if (typeof window.TranslationLoader === 'undefined') {
+
+		class TranslationLoader {
+			constructor() {
+				this.translations = {};
+
+				//	Egyetlen betöltési pont
+				this.loaded = this.loadTranslations().then(t => {
+					this.translations = t || {};
+					if (!$.isEmptyObject(this.translations)) {
+						this.translatePage();
+					} else {
+						console.error("Translation file unavailable; English labels will be used. | A fordítási fájl nem érhető el; angol feliratok jelennek meg.");
+					}
+				});
+			}
+
+			async loadTranslations() {
+
+				if (typeof proto === 'undefined' || typeof address === 'undefined' || typeof port === 'undefined') {
+					console.error("Missing protocol, address or port. | Hiányzó protokoll, cím vagy port.");
+					return {};
+				}
+
+				let aktlanguage;
+				const settingsUrl = `${proto}${address}:${port}/json.htm?type=command&param=getsettings`;
+
+				try {
+					const response = await fetch(settingsUrl);
+					if (!response.ok) throw new Error("Network error | Hálózati hiba");
+					const data = await response.json();
+					aktlanguage = String(data.Language || "en").toLowerCase().split(/[-_]/)[0];
+				} catch (e) {
+					console.error("Language lookup failed | Nyelvlekérdezési hiba:", e);
+					return {};
+				}
+
+				const filePath = `/templates/asc_html_translate_${aktlanguage}.json`;
+
+				try {
+					return await $.getJSON(filePath);
+				} catch (e) {
+					console.warn(`Translation file unavailable | Fordítási fájl nem érhető el: ${filePath}`, e);
+					if (aktlanguage !== "en") {
+						try { return await $.getJSON("/templates/asc_html_translate_en.json"); } catch (_) {}
+					}
+					return {};
+				}
+			}
+
+			t(text) {
+				return Object.prototype.hasOwnProperty.call(this.translations, text) ? this.translations[text] : text;
+			}
+
+			translatePage() {
+				$('[data-translate]').each((_, el) => {
+					const key = $(el).data('translate');
+					$(el).text(this.t(key));
+				});
+			}
+		}
+
+		window.TranslationLoader = TranslationLoader;
+	}
+		var script = document.createElement('script');
+		script.src = 'templates/asc_viewer.js?' + Date.now();
+		window.ascViewerLoaded = new Promise((resolve, reject) => {
+			script.onload = resolve;
+			script.onerror = () => reject(new Error("ASC viewer script failed to load | Az ASC viewer szkript nem tölthető be"));
+			document.head.appendChild(script);
+		});
+		
+	</script>
+	<div id="asc_content"></div>
+	<div id="saveStatus" aria-hidden="true">
+		<svg viewBox="0 0 50 50" class="spin-icon" xmlns="http://www.w3.org/2000/svg">
+			<circle cx="25" cy="25" r="20" fill="none" stroke="#eee" stroke-width="5" stroke-linecap="round" stroke-dasharray="90" stroke-dashoffset="60"/>
+		</svg>
+	</div>
+	<h1 id="status"></h1>
+	<style>
+		body { font-family: sans-serif; font-size:9pt; padding: 20px; }
+		#saveStatus {
+			position: fixed;
+			top: 0px;
+			right: 0px;
+			width: 100%;
+			height: 100%;
+			z-index: 9999;
+			background-color: #fff;
+		}
+
+		.spin-icon {
+			width: 100%;
+			height: 100%;
+			animation: spin 1s linear infinite;
+		}
+
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+		.save-data {
+			background-color: #00759f;
+			border: none !important;
+			color: #fff;
+			cursor: pointer;
+			padding-top: 8px;
+			padding-bottom: 8px;
+			line-height: 20px;
+			padding-right: 12px;
+			padding-left: 12px;
+			margin-right: 2px;
+			font-size: 10pt;
+			font-weight: bold;
+			margin-bottom: 50px;
+			width: 100%;
+			margin-top: 25px;
+		}
+		.device {
+			border: 1px solid #999;
+			padding: 10px;
+			background-color: #eee;
+			cursor: grab;
+			display: inline-block;
+			margin: 5px 5px 5px 0;
+		}
+		.drop-target {
+			border: 1px solid #aaa;
+			min-height: 40px;
+			padding: 5px;
+			background-color: #fff;
+			margin-top: 5px;
+		}
+		.drop-target.dragover {
+			border-color: #007bff;
+			background-color: #f0faff;
+		}
+		.chooser-toggle {
+			cursor: pointer;
+			color: #007bff;
+			font-size: 0.9em;
+			margin-bottom: 5px;
+			display: inline-block;
+		}
+		.chooser-box {
+			display: none;
+			padding: 5px;
+			border: 2px dashed #ddd;
+			background: #f9f9f9;
+			margin-bottom: 10px;
+		}
+		.zone-block {
+			border: 1px solid #ccc;
+			border-radius: 8px;
+			padding: 15px;
+			margin-bottom: 30px;
+			background-color: #fdfdfd;
+		}
+		.input-small {
+			width: 2ch;
+			background-color: #fff !important;
+			font-size: 10pt;
+		}
+		.input-normal {
+			width: 20ch;
+			background-color: #fff !important;
+			font-size: 10pt;
+		}
+		.paramname {
+			font-weight:bold;
+			font-size: 12pt !important;
+			margin-right: 20px;
+		}
+	</style>
+	<script>
+
+	Date.prototype.yyyymmdd_hhmm = function() {
+		return this.getFullYear().toString() +
+			("0" + (this.getMonth() + 1)).slice(-2) +
+			("0" + this.getDate()).slice(-2) + "_" +
+			("0" + this.getHours()).slice(-2) +
+			("0" + this.getMinutes()).slice(-2);
+	};
+
+
+	function showSaveStatus() {
+		console.log("Saving | Mentés");
+		document.getElementById("saveStatus").style.display = "block";
+	}
+
+	function hideSaveStatus() {
+		document.getElementById("saveStatus").style.display = "none";
+	}
+
+	if (typeof window.translationLoader === 'undefined') {
+		window.translationLoader = new TranslationLoader();
+	}
+
+	Promise.all([translationLoader.loaded, window.ascViewerLoaded]).then(async () => {
+		function download(filename, text) {
+			var element = document.createElement('a');
+			element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+			element.setAttribute('download', filename);
+
+			element.style.display = 'none';
+			document.body.appendChild(element);
+
+			element.click();
+
+			document.body.removeChild(element);
+		}
+
+		function showUsageChart(data, i) {
+			
+			var chartElement = $('#graphk'+i);
+			
+			var series = [];
+
+			if(data.tempIn != undefined) {
+				series.push({
+					name: translationLoader.t("Internal temperature"),
+					yAxis: 0,
+					data: data.tempIn.map(function (item) {
+						return {
+							x: +(new Date(item.d)),
+							y: item.te
+						}
+					})
+				});
+			}
+			if(data.tempOut != undefined) {
+				series.push({
+					name: translationLoader.t("Outside temperature"),
+					yAxis: 0,
+					data: data.tempOut.map(function (item) {
+						return {
+							x: +(new Date(item.d)),
+							y: item.te
+						}
+					})
+				});
+			}
+			if(data.Lux != undefined) {
+				series.push({
+					name: translationLoader.t("External brightness (lux/100)"),
+					yAxis: 0,
+					data: data.Lux.map(function (item) {
+						return {
+							x: +(new Date(item.d)),
+							y: item.lux/100
+						}
+					})
+				});
+			}
+			if(data.nyitlux != undefined) {
+				series.push({
+					name: translationLoader.t("Opening lux value (lux/100)"),
+					yAxis: 0,
+					step: true,
+					data: data.nyitlux.map(function (item) {
+						return {
+							x: +(new Date(item.d)),
+							y: item.lux/100
+						}
+					})
+				});
+			}
+			if(data.eroslux != undefined) {
+				series.push({
+					name: translationLoader.t("Strong Lux value (lux/100)"),
+					yAxis: 0,
+					step: true,
+					data: data.eroslux.map(function (item) {
+						return {
+							x: +(new Date(item.d)),
+							y: item.lux/100
+						}
+					})
+				});
+			}
+			if(data.redonykapcs != undefined) {
+				series.push({
+					name: translationLoader.t("Shutter switch"),
+					yAxis: 0,
+					step: true,
+					data: data.redonykapcs.map(function (item) {
+						return {
+							x: +(new Date(item.d)),
+							y: parseFloat(item.v)
+						}
+					})
+				});
+			}
+			if(data.wind != undefined) {
+				series.push({
+					name: translationLoader.t("Wind (km/h)"),
+					yAxis: 0,
+					step: true,
+					data: data.wind.map(function (item) {
+						return {
+							x: +(new Date(item.d)),
+							y: parseFloat(item.sp)*3.6
+						}
+					})
+				});
+			}
+			if(data.vibration != undefined) {
+				series.push({
+					name: translationLoader.t("Vibration (On-Off)"),
+					yAxis: 0,
+					step: true,
+					data: data.vibration.map(function (item) {
+						return {
+							x: +(new Date(item.Date)),
+							y: item.Data === "On" ? 100 : 0
+						}
+					})
+				});
+			}
+			chartElement.highcharts({
+				chart: {
+					zoomType: 'x'
+				},
+				title: {
+					text: ''
+				},
+				xAxis: {
+					type: 'datetime',
+					minTickInterval: 24 * 3600 * 1000
+				},
+				yAxis: [
+					{
+						title: {
+							text: translationLoader.t("Temperature (°C)")
+						},
+						maxPadding: 0
+					},
+					{
+						title: {
+							text: translationLoader.t("Position (%)")
+						},
+						maxPadding: 0
+					},
+					{
+						title: {
+							text: translationLoader.t("Wind (km/h)")
+						},
+						maxPadding: 0
+					},
+					{
+						title: {
+							text: translationLoader.t("Brightness (lux/100)")
+						},
+						maxPadding: 0
+					}
+
+				],
+				tooltip: {
+					formatter: function () {
+						return Highcharts.dateFormat('%Y-%m-%d %H:%M', this.x) + '<br/>' + this.series.name + ': ' + Highcharts.numberFormat(this.y,1);
+					}
+				},
+				plotOptions: {
+					column: {
+						minPointLength: 4,
+						pointPadding: 0.1,
+						groupPadding: 0,
+						dataLabels: {
+							enabled: true,
+							color: 'white',
+							format: '{y} °C'
+						}
+					},
+					series: {
+						turboThreshold : 0
+					}
+				},
+				legend: {
+					enabled: true
+				},
+				series: series
+			});
+		}
+		var asc=await getRedony();
+		var askJSON = getRequestParam("redonyHistory");
+		if(askJSON != undefined) {
+			var th = asc.filter((t) => t.name == askJSON);
+			if(th.length > 0) {
+				var s = JSON.stringify(th[0]);
+				download(th[0].name+'_'+new Date().yyyymmdd_hhmm(), s);
+			}
+		} else {
+			if (nodata) {
+				document.getElementById("status").innerText = translationLoader.t("No active plugins!");
+				hideSaveStatus();
+				return;
+			}
+			for(var i=0;i<asc.length;i++) {
+				
+				var table = document.createElement('table');
+				table.setAttribute('style', 'border-spacing: 5px;');
+				document.getElementById('asc_content').appendChild(table);
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				
+				var redname = document.createElement('h1');
+				redname.setAttribute('style', 'margin-top:15px; margin-bottom: 10px;');
+				redname.innerText = asc[i].name;
+				cell1.appendChild(redname);
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+
+				// graf ----------------------------------------------------------------
+				
+				var element = document.createElement('h2');
+				element.innerText = translationLoader.t("The last day:");
+				element.setAttribute('style', 'margin-top:15px; margin-bottom: 10px;');
+				document.getElementById('asc_content').appendChild(element);
+				
+				element = document.createElement('div');
+				element.setAttribute('class', 'device-log-chart');
+				element.setAttribute('style', 'margin-bottom: 60px;');
+				element.setAttribute('id', 'graphk'+i);
+				document.getElementById('asc_content').appendChild(element);
+				showUsageChart(asc[i], i);
+
+				var table = document.createElement('table');
+				table.setAttribute('style', 'border-spacing: 5px;');
+				document.getElementById('asc_content').appendChild(table);
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+
+				var redcim = document.createElement('h2');
+				redcim.innerText = translationLoader.t("Setting of operating parameters");
+				cell1.appendChild(redcim);
+
+				function createChip(label, id, dropZone, hiddenInput, datasetKey, draggable = true) {
+					const chip = document.createElement('div');
+					chip.className = 'device';
+					chip.innerHTML = `${label} (ID: ${id}) <span class="remove-x" style="color:red; cursor:pointer; margin-left:8px;">✖</span>`;
+					chip.dataset.id = id;
+
+					if (draggable) {
+						chip.setAttribute('draggable', 'true');
+
+						chip.addEventListener('dragstart', e => {
+							e.dataTransfer.setData('remove-id', id);
+						});
+
+						chip.addEventListener('dragend', e => {
+							if (!dropZone.contains(chip)) {
+								chip.remove();
+								let updatedIds = dropZone.dataset[datasetKey].split(',').filter(existingId => existingId !== id);
+								dropZone.dataset[datasetKey] = updatedIds.join(',');
+								hiddenInput.value = updatedIds.join(',');
+							}
+						});
+					}
+
+					chip.querySelector('.remove-x').addEventListener('click', e => {
+						e.stopPropagation();
+						chip.remove();
+						let updatedIds = dropZone.dataset[datasetKey].split(',').filter(existingId => existingId !== id);
+						dropZone.dataset[datasetKey] = updatedIds.join(',');
+						hiddenInput.value = updatedIds.join(',');
+					});
+
+					return chip;
+				}
+
+				if (!asc[i].windnameakt) asc[i].windnameakt = [];
+				if (!asc[i].switchnameakt) asc[i].switchnameakt = [];
+				if (!asc[i].tempnameakt) asc[i].tempnameakt = [];
+				if (!asc[i].luxnameakt) asc[i].luxnameakt = [];
+				if (!asc[i].vibnameakt) asc[i].vibnameakt = [];
+
+				function createDropBlock(asc, i, config) {
+					const { mode, link, title, forparam, modePrefix, targetId, datasetKey, inputName } = config;
+
+					let table = document.createElement('table');
+					table.setAttribute('style', 'width:100%; border-spacing: 3px; margin-bottom: 10px;');
+					document.getElementById('asc_content').appendChild(table);
+
+					let row1 = table.insertRow();
+					let cell1 = row1.insertCell(0);
+
+					let chooserToggleName = document.createElement('span');
+					chooserToggleName.textContent = translationLoader.t(title);
+					chooserToggleName.className = 'paramname';
+					cell1.appendChild(chooserToggleName);
+
+					let chooserToggle = document.createElement('span');
+					chooserToggle.className = `chooser-toggle`;
+					chooserToggle.textContent = translationLoader.t(link);
+					chooserToggle.dataset.target = targetId+'_'+i;
+					cell1.appendChild(chooserToggle);
+
+					let chooserBox = document.createElement('div');
+					chooserBox.className = 'chooser-box';
+					chooserBox.id = `${targetId+'_'+i}_chooser`;
+
+					asc[i][forparam].forEach(entry => {
+						let [label, id] = [entry.substring(0, entry.lastIndexOf(':')), entry.substring(entry.lastIndexOf(':') + 1)];
+						let device = document.createElement('div');
+						device.className = 'device';
+						device.draggable = true;
+						device.dataset.id = id;
+						device.dataset.label = label;
+						device.dataset.target = targetId+'_'+i;
+						device.textContent = `${label} (idx: ${id})`;
+						chooserBox.appendChild(device);
+					});
+
+					cell1.appendChild(chooserBox);
+
+					let row2 = table.insertRow();
+					let cell2 = row2.insertCell(0);
+
+					let dropZone = document.createElement('div');
+					dropZone.className = 'drop-target';
+					dropZone.id = targetId+'_'+i;
+					dropZone.dataset[datasetKey] = '';
+					cell2.appendChild(dropZone);
+
+					let row3 = table.insertRow();
+					let cell3 = row3.insertCell(0);
+
+					let hiddenInput = document.createElement('input');
+					hiddenInput.type = 'hidden';
+					hiddenInput.name = inputName;
+					cell3.appendChild(hiddenInput);
+
+					chooserToggle.addEventListener('click', () => {
+						chooserBox.style.display = chooserBox.style.display === 'block' ? 'none' : 'block';
+					});
+
+					chooserBox.querySelectorAll('.device').forEach(dev => {
+						dev.addEventListener('dragstart', e => {
+							e.dataTransfer.setData('id', dev.dataset.id);
+							e.dataTransfer.setData('label', dev.dataset.label);
+							e.dataTransfer.setData('target', dev.dataset.target);
+						});
+					});
+
+					dropZone.addEventListener('dragover', e => {
+						e.preventDefault();
+						dropZone.classList.add('dragover');
+					});
+					dropZone.addEventListener('dragleave', () => {
+						dropZone.classList.remove('dragover');
+					});
+					dropZone.addEventListener('drop', e => {
+						e.preventDefault();
+						dropZone.classList.remove('dragover');
+						const id = e.dataTransfer.getData('id');
+						const label = e.dataTransfer.getData('label');
+						const target = e.dataTransfer.getData('target');
+						if (dropZone.id !== target) return;
+
+						let currentIds = dropZone.dataset[datasetKey] ? dropZone.dataset[datasetKey].split(',') : [];
+						if (!currentIds.includes(id)) {
+							let chip = createChip(label, id, dropZone, hiddenInput, datasetKey, false);  // nem draggable
+							dropZone.appendChild(chip);
+							currentIds.push(id);
+							dropZone.dataset[datasetKey] = currentIds.join(',');
+							hiddenInput.value = currentIds.join(',');
+						}
+					});
+
+					let modeRaw = asc[i] && asc[i][mode] != null ? String(asc[i][mode]) : '';
+					let modeItems = modeRaw
+					.split(',')
+					.map(s => s.trim())
+					.filter(s => modePrefix === '' || s.startsWith(modePrefix + ':'))
+					.map(s => modePrefix === '' ? s : s.substring(modePrefix.length + 1));
+
+					let ids = [];
+					modeItems.forEach(idx => {
+						let found = asc[i][forparam].find(entry => entry.endsWith(':' + idx));
+						if (found) {
+							let [label, id] = [found.substring(0, found.lastIndexOf(':')), found.substring(found.lastIndexOf(':') + 1)];
+							let chip = createChip(label, id, dropZone, hiddenInput, datasetKey, false);  // nem draggable
+							dropZone.appendChild(chip);
+							ids.push(id);
+						}
+					});
+					dropZone.dataset[datasetKey] = ids.join(',');
+					hiddenInput.value = ids.join(',');
+				}
+
+				const dropBlockConfigs = [];
+
+				dropBlockConfigs.push({
+					mode: 'Mode1',
+					title: "External thermometer",
+					link: "➕ Add external thermometer",
+					forparam: "tempnameakt",
+					modePrefix: 'K',
+					targetId: 'external_temp',
+					datasetKey: 'k',
+					inputName: 'external_temp_id'
+				});
+				createDropBlock(asc, i, dropBlockConfigs.at(-1));
+
+				dropBlockConfigs.push({
+					mode: 'Mode1',
+					link: "➕ Add internal thermometer",
+					title: "Internal thermometer",
+					forparam: "tempnameakt",
+					modePrefix: 'B',
+					targetId: 'internal_temp',
+					datasetKey: 'b',
+					inputName: 'internal_temp_id'
+				});
+				createDropBlock(asc, i, dropBlockConfigs.at(-1));
+
+				dropBlockConfigs.push({
+					mode: 'Mode1',
+					link: "➕ Add light sensor",
+					title: "Light sensor",
+					forparam: "luxnameakt",
+					modePrefix: 'F',
+					targetId: 'light',
+					datasetKey: 'f',
+					inputName: 'light_id'
+				});
+				createDropBlock(asc, i, dropBlockConfigs.at(-1));
+
+				dropBlockConfigs.push({
+					mode: 'Mode1',
+					link: "➕ Add wind sensor",
+					title: "Wind sensor",
+					forparam: "windnameakt",
+					modePrefix: 'S',
+					targetId: 'wind',
+					datasetKey: 's',
+					inputName: 'wind_id'
+				});
+				createDropBlock(asc, i, dropBlockConfigs.at(-1));
+
+				dropBlockConfigs.push({
+					mode: 'Mode1',
+					link: "➕ Add vibration sensor",
+					title: "Vibration sensor",
+					forparam: "vibnameakt",
+					modePrefix: 'V',
+					targetId: 'vibration',
+					datasetKey: 'v',
+					inputName: 'vibration_id'
+				});
+				createDropBlock(asc, i, dropBlockConfigs.at(-1));
+
+				dropBlockConfigs.push({
+					mode: 'Mode2',
+					link: "➕ Add shutter",
+					title: "Shutter switchs",
+					forparam: "switchnameakt",
+					modePrefix: '',
+					targetId: 'shutter_switch',
+					datasetKey: 's',
+					inputName: 'shutter_switch_id'
+				});
+				createDropBlock(asc, i, dropBlockConfigs.at(-1));
+
+				// Mode6
+
+				var mode6Array = String(asc[i].Mode6 || '0,5,,').split(',');
+
+				var table = document.createElement('table');
+				table.setAttribute('style', 'border-spacing: 3px; margin-bottom: 10px; background-color: #fff !important; border: 1px solid #aaa; width:100%; padding:10px;');
+				document.getElementById('asc_content').appendChild(table);
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+
+				var table = document.createElement('table');
+				table.setAttribute('style', 'border-spacing: 3px;');
+				cell1.appendChild(table);
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+				var cell5 = row.insertCell(4);
+				var cell6 = row.insertCell(5);
+				var cell7 = row.insertCell(6);
+				var cell8 = row.insertCell(7);
+				var cell9 = row.insertCell(8);
+
+				var lograte = document.createElement('h2');
+				lograte.innerText = translationLoader.t("Logging level")+':';
+				lograte.setAttribute('style', 'font-weight:bold;');
+				cell1.appendChild(lograte);
+
+				var lograte_value = document.createElement('input');
+				lograte_value.setAttribute('type', 'text');
+				lograte_value.setAttribute('id', 'text_0_mode6_' + i);
+				lograte_value.setAttribute('value', mode6Array[0]);
+				lograte_value.classList.add('input-small');
+				lograte_value.setAttribute('title', 'Python Only = 2, Basic = 62, All = 1, None = 0');
+				cell2.appendChild(lograte_value);
+
+				var update_cycle = document.createElement('h2');
+				update_cycle.innerText = translationLoader.t("Update cycle")+':';
+				update_cycle.setAttribute('style', 'font-weight:bold;');
+				cell3.appendChild(update_cycle);
+
+				var update_cycle_value = document.createElement('input');
+				update_cycle_value.setAttribute('type', 'text');
+				update_cycle_value.setAttribute('id', 'text_1_mode6_' + i);
+				update_cycle_value.setAttribute('value', mode6Array[1]);
+				update_cycle_value.classList.add('input-small');
+				cell4.appendChild(update_cycle_value); 
+
+				var presence_detection = document.createElement('h2');
+				presence_detection.innerText = translationLoader.t("Presence detection name")+':';
+				presence_detection.setAttribute('style', 'font-weight:bold;');
+				cell5.appendChild(presence_detection);
+
+				var presence_detection_value = document.createElement('input');
+				presence_detection_value.setAttribute('type', 'text');
+				presence_detection_value.setAttribute('id', 'text_2_mode6_' + i);
+				presence_detection_value.setAttribute('value', mode6Array[2]);
+				presence_detection_value.classList.add('input-normal');
+				cell6.appendChild(presence_detection_value);
+
+				// Preserve the fourth Mode6 parameter (login/email) without changing the visible layout. | A negyedik Mode6 paraméter (bejelentkezés/e-mail) megőrzése a felület módosítása nélkül.
+				var loginEmailInput = document.createElement('input');
+				loginEmailInput.type = 'hidden';
+				loginEmailInput.id = 'text_3_mode6_' + i;
+				loginEmailInput.value = mode6Array.slice(3).join(',');
+				cell6.appendChild(loginEmailInput);
+
+				// akt adatok
+
+				var table = document.createElement('table');
+				table.setAttribute('style', 'border-spacing: 3px; margin-bottom: 10px; background-color: #fff !important; border: 1px solid #aaa; width:100%; padding:10px;');
+				document.getElementById('asc_content').appendChild(table);
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+
+				var table = document.createElement('table');
+				table.setAttribute('style', 'border-collapse: collapse;');
+				cell1.appendChild(table);
+				
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+				var cell5 = row.insertCell(4);
+				var cell6 = row.insertCell(5);
+
+				var targetmin = document.createElement('h2');
+				targetmin.innerText = translationLoader.t("Minimum room internal temperature difference (target):");
+				targetmin.setAttribute('style', 'font-weight:bold;');
+				cell1.appendChild(targetmin);
+
+				var targetminC = document.createElement('input');
+				targetminC.setAttribute('type', 'number');
+				targetminC.setAttribute('min', '10');
+				targetminC.setAttribute('max', '40');
+				targetminC.setAttribute('id', 'targetmin_' + i);
+				targetminC.setAttribute('value', asc[i].temptargetminakt);
+				cell2.appendChild(targetminC);
+
+				cell3.innerText = translationLoader.t('degrees Celsius');
+
+				var targetmax = document.createElement('h2');
+				targetmax.innerText = translationLoader.t("Maximum room internal temperature (target):");
+				targetmax.setAttribute('style', 'font-weight:bold;');
+				cell4.appendChild(targetmax);
+
+				var targetmaxC = document.createElement('input');
+				targetmaxC.setAttribute('type', 'number');
+				targetmaxC.setAttribute('min', '10');
+				targetmaxC.setAttribute('max', '40');
+				targetmaxC.setAttribute('id', 'targetmax_' + i);
+				targetmaxC.setAttribute('value', asc[i].temptargetmaxakt);
+				cell5.appendChild(targetmaxC);
+
+				cell6.innerText = translationLoader.t("degrees Celsius");
+
+				// homersekletek ----------------------------------------------------------
+
+				var table = document.createElement('table');
+				table.setAttribute('style', 'border-spacing: 3px; margin-bottom: 10px;');
+				document.getElementById('asc_content').appendChild(table);
+				
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+				var cell5 = row.insertCell(4);
+				var cell6 = row.insertCell(5);
+				var cell7 = row.insertCell(6);
+				var cell8 = row.insertCell(7);
+				var cell9 = row.insertCell(8);
+				var cell10 = row.insertCell(9);
+				var cell11 = row.insertCell(10);
+				var cell12 = row.insertCell(11);
+				var cell13 = row.insertCell(12);
+				var cell14 = row.insertCell(13);
+
+				var inakt = document.createElement('span');
+				inakt.innerText = translationLoader.t("Current internal");
+				inakt.setAttribute('style', 'font-weight:bold;');
+				cell1.appendChild(inakt);
+
+				var inaktC = document.createElement('span');
+				inaktC.innerText = asc[i].tempinakt;
+				cell2.appendChild(inaktC);
+
+				cell3.innerText = translationLoader.t('degrees Celsius');
+
+				var inakt = document.createElement('span');
+				inakt.innerText = translationLoader.t("Current external");
+				inakt.setAttribute('style', 'font-weight:bold; margin-left: 20px;');
+				cell4.appendChild(inakt);
+
+				var inaktC = document.createElement('span');
+				inaktC.innerText = asc[i].tempoutakt;
+				cell5.appendChild(inaktC);
+
+				cell6.innerText = translationLoader.t('degrees Celsius');
+
+				var nyitlux = document.createElement('span');
+				nyitlux.innerText = translationLoader.t("Open Lux");
+				nyitlux.setAttribute('style', 'font-weight:bold; margin-left: 20px;');
+				cell7.appendChild(nyitlux);
+
+				var nyitluxL = document.createElement('span');
+				nyitluxL.innerText = asc[i].nyitluxakt + " Lux";
+				cell8.appendChild(nyitluxL);
+
+				var eroslux = document.createElement('span');
+				eroslux.innerText = translationLoader.t("Strong lux:");
+				eroslux.setAttribute('style', 'font-weight:bold; margin-left: 20px;');
+				cell9.appendChild(eroslux);
+
+				var erosluxL = document.createElement('span');
+				erosluxL.innerText = asc[i].erosluxakt + " Lux";
+				cell10.appendChild(erosluxL);
+
+				var luxakt = document.createElement('span');
+				luxakt.innerText = translationLoader.t("Current brightness:");
+				luxakt.setAttribute('style', 'font-weight:bold; margin-left: 20px;');
+				cell11.appendChild(luxakt);
+
+				var luxaktL = document.createElement('span');
+				luxaktL.innerText = asc[i].luxtakt + " Lux";
+				cell12.appendChild(luxaktL);
+
+				var kapcsakt = document.createElement('span');
+				kapcsakt.innerText = translationLoader.t("Current position:");
+				kapcsakt.setAttribute('style', 'font-weight:bold; margin-left: 20px;');
+				cell13.appendChild(kapcsakt);
+
+				var kapcsaktE = document.createElement('span');
+				kapcsaktE.innerText = asc[i].kapcsoloakt;
+				cell14.appendChild(kapcsaktE);
+
+				// mode 3  ----------------------------------------------------------------
+
+				var mode3Array = asc[i].Mode3.split(',');
+
+				//console.log(mode3Array);
+
+				var cim = document.createElement('h2');
+				cim.innerText = translationLoader.t("The internal temperature is lower than the target minimum")+ " (" + asc[i].temptargetminakt + ") " + translationLoader.t("degrees Celsius");
+				document.getElementById('asc_content').appendChild(cim);
+				
+				var table = document.createElement('table');
+				table.setAttribute('style', 'border-collapse: collapse; margin-top: 10px; margin-bottom: 40px;');
+				document.getElementById('asc_content').appendChild(table);
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				
+				cell1.innerText = translationLoader.t("It's colder outside than inside!");
+				cell1.setAttribute('style', 'font-weight:bold; width:500px;');
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is less than the opening limit (in fact, there is):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_0_mode3_' + i);
+				rangeInput.setAttribute('value', mode3Array[0]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_0_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_0_mode3_' + i);
+				textInput.setAttribute('value', mode3Array[0]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_0_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is greater than opening light but less than bright light (normal light):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_1_mode3_' + i);
+				rangeInput.setAttribute('value', mode3Array[1]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_1_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_1_mode3_' + i);
+				textInput.setAttribute('value', mode3Array[1]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_1_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("Lux is greater than strong light (strong sunshine):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_2_mode3_' + i);
+				rangeInput.setAttribute('value', mode3Array[2]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_2_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_2_mode3_' + i);
+				textInput.setAttribute('value', mode3Array[2]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_2_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is less than the opening limit (in fact, there is) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_3_mode3_' + i);
+				rangeInput.setAttribute('value', mode3Array[3]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_3_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_3_mode3_' + i);
+				textInput.setAttribute('value', mode3Array[3]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_3_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is greater than opening light but less than bright light (normal light) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_4_mode3_' + i);
+				rangeInput.setAttribute('value', mode3Array[4]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_4_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_4_mode3_' + i);
+				textInput.setAttribute('value', mode3Array[4]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_4_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("Lux is greater than strong light (strong sunshine) + presence:");
+
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_5_mode3_' + i);
+				rangeInput.setAttribute('value', mode3Array[5]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_5_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_5_mode3_' + i);
+				textInput.setAttribute('value', mode3Array[5]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_5_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				
+				cell1.innerText = translationLoader.t("It's warmer outside than inside!");
+				cell1.setAttribute('style', 'font-weight:bold; width:500px;');
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is less than the opening limit (in fact, there is):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_6_mode3_' + i);
+				rangeInput.setAttribute('value', mode3Array[6]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_6_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_6_mode3_' + i);
+				textInput.setAttribute('value', mode3Array[6]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_6_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is greater than opening light but less than bright light (normal light):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_7_mode3_' + i);
+				rangeInput.setAttribute('value', mode3Array[7]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_7_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_7_mode3_' + i);
+				textInput.setAttribute('value', mode3Array[7]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_7_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("Lux is greater than strong light (strong sunshine):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_8_mode3_' + i);
+				rangeInput.setAttribute('value', mode3Array[8]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_8_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_8_mode3_' + i);
+				textInput.setAttribute('value', mode3Array[8]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_8_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is less than the opening limit (in fact, there is) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_9_mode3_' + i);
+				rangeInput.setAttribute('value', mode3Array[9]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_9_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_9_mode3_' + i);
+				textInput.setAttribute('value', mode3Array[9]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_9_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is greater than opening light but less than bright light (normal light) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_10_mode3_' + i);
+				rangeInput.setAttribute('value', mode3Array[10]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_10_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_10_mode3_' + i);
+				textInput.setAttribute('value', mode3Array[10]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_10_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("Lux is greater than strong light (strong sunshine) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_11_mode3_' + i);
+				rangeInput.setAttribute('value', mode3Array[11]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_11_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_11_mode3_' + i);
+				textInput.setAttribute('value', mode3Array[11]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_11_mode3_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+
+				// mode 4 ----------------------------------------------------------------
+
+				var mode4Array = asc[i].Mode4.split(',');
+
+				var cim = document.createElement('h2');
+				cim.innerText = translationLoader.t("If the internal temperature is between target min and target max")+ " (" + asc[i].temptargetminakt + ' - '+ asc[i].temptargetmaxakt + ") " + translationLoader.t("degrees Celsius");
+				document.getElementById('asc_content').appendChild(cim);
+				
+				var table = document.createElement('table');
+				table.setAttribute('style', 'border-collapse: collapse; margin-top: 10px; margin-bottom: 40px;');
+				document.getElementById('asc_content').appendChild(table);
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				
+				cell1.innerText = translationLoader.t("It's colder outside than inside!");
+				cell1.setAttribute('style', 'font-weight:bold; width:500px;');
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is less than the opening limit (in fact, there is):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_0_mode4_' + i);
+				rangeInput.setAttribute('value', mode4Array[0]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_0_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_0_mode4_' + i);
+				textInput.setAttribute('value', mode4Array[0]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_0_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is greater than opening light but less than bright light (normal light):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_1_mode4_' + i);
+				rangeInput.setAttribute('value', mode4Array[1]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_1_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_1_mode4_' + i);
+				textInput.setAttribute('value', mode4Array[1]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_1_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("Lux is greater than strong light (strong sunshine):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_2_mode4_' + i);
+				rangeInput.setAttribute('value', mode4Array[2]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_2_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_2_mode4_' + i);
+				textInput.setAttribute('value', mode4Array[2]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_2_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is less than the opening limit (in fact, there is) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_3_mode4_' + i);
+				rangeInput.setAttribute('value', mode4Array[3]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_3_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_3_mode4_' + i);
+				textInput.setAttribute('value', mode4Array[3]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_3_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is greater than opening light but less than bright light (normal light) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_4_mode4_' + i);
+				rangeInput.setAttribute('value', mode4Array[4]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_4_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_4_mode4_' + i);
+				textInput.setAttribute('value', mode4Array[4]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_4_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("Lux is greater than strong light (strong sunshine) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_5_mode4_' + i);
+				rangeInput.setAttribute('value', mode4Array[5]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_5_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_5_mode4_' + i);
+				textInput.setAttribute('value', mode4Array[5]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_5_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				
+				cell1.innerText = translationLoader.t("It's warmer outside than inside!");
+				cell1.setAttribute('style', 'font-weight:bold; width:500px;');
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is less than the opening limit (in fact, there is):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_6_mode4_' + i);
+				rangeInput.setAttribute('value', mode4Array[6]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_6_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_6_mode4_' + i);
+				textInput.setAttribute('value', mode4Array[6]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_6_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is greater than opening light but less than bright light (normal light):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_7_mode4_' + i);
+				rangeInput.setAttribute('value', mode4Array[7]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_7_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_7_mode4_' + i);
+				textInput.setAttribute('value', mode4Array[7]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_7_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("Lux is greater than strong light (strong sunshine):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_8_mode4_' + i);
+				rangeInput.setAttribute('value', mode4Array[8]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_8_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_8_mode4_' + i);
+				textInput.setAttribute('value', mode4Array[8]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_8_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is less than the opening limit (in fact, there is) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_9_mode4_' + i);
+				rangeInput.setAttribute('value', mode4Array[9]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_9_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_9_mode4_' + i);
+				textInput.setAttribute('value', mode4Array[9]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_9_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is greater than opening light but less than bright light (normal light) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_10_mode4_' + i);
+				rangeInput.setAttribute('value', mode4Array[10]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_10_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_10_mode4_' + i);
+				textInput.setAttribute('value', mode4Array[10]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_10_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("Lux is greater than strong light (strong sunshine) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_11_mode4_' + i);
+				rangeInput.setAttribute('value', mode4Array[11]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_11_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_11_mode4_' + i);
+				textInput.setAttribute('value', mode4Array[11]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_11_mode4_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+
+				// mode 5 ----------------------------------------------------------------
+
+				var mode5Array = asc[i].Mode5.split(',');
+				
+				var cim = document.createElement('h2');
+				cim.innerText = translationLoader.t("If the internal temperature is higher than the target max")+ " (" + asc[i].temptargetmaxakt + ") " + translationLoader.t("degrees Celsius");
+				document.getElementById('asc_content').appendChild(cim);
+				
+				var table = document.createElement('table');
+				table.setAttribute('style', 'border-collapse: collapse; margin-top: 10px; margin-bottom: 40px;');
+				document.getElementById('asc_content').appendChild(table);
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				
+				cell1.innerText = translationLoader.t("It's colder outside than inside!");
+				cell1.setAttribute('style', 'font-weight:bold; width:500px;');
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is less than the opening limit (in fact, there is):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_0_mode5_' + i);
+				rangeInput.setAttribute('value', mode5Array[0]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_0_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_0_mode5_' + i);
+				textInput.setAttribute('value', mode5Array[0]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_0_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is greater than opening light but less than bright light (normal light):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_1_mode5_' + i);
+				rangeInput.setAttribute('value', mode5Array[1]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_1_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_1_mode5_' + i);
+				textInput.setAttribute('value', mode5Array[1]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_1_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("Lux is greater than strong light (strong sunshine):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_2_mode5_' + i);
+				rangeInput.setAttribute('value', mode5Array[2]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_2_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_2_mode5_' + i);
+				textInput.setAttribute('value', mode5Array[2]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_2_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is less than the opening limit (in fact, there is) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_3_mode5_' + i);
+				rangeInput.setAttribute('value', mode5Array[3]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_3_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_3_mode5_' + i);
+				textInput.setAttribute('value', mode5Array[3]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_3_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is greater than opening light but less than bright light (normal light) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_4_mode5_' + i);
+				rangeInput.setAttribute('value', mode5Array[4]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_4_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_4_mode5_' + i);
+				textInput.setAttribute('value', mode5Array[4]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_4_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("Lux is greater than strong light (strong sunshine) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_5_mode5_' + i);
+				rangeInput.setAttribute('value', mode5Array[5]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_5_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_5_mode5_' + i);
+				textInput.setAttribute('value', mode5Array[5]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_5_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				
+				cell1.innerText = translationLoader.t("It's warmer outside than inside!");
+				cell1.setAttribute('style', 'font-weight:bold; width:500px;');
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is less than the opening limit (in fact, there is):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_6_mode5_' + i);
+				rangeInput.setAttribute('value', mode5Array[6]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_6_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_6_mode5_' + i);
+				textInput.setAttribute('value', mode5Array[6]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_6_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is greater than opening light but less than bright light (normal light):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_7_mode5_' + i);
+				rangeInput.setAttribute('value', mode5Array[7]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_7_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_7_mode5_' + i);
+				textInput.setAttribute('value', mode5Array[7]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_7_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("Lux is greater than strong light (strong sunshine):");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_8_mode5_' + i);
+				rangeInput.setAttribute('value', mode5Array[8]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_8_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_8_mode5_' + i);
+				textInput.setAttribute('value', mode5Array[8]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_8_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is less than the opening limit (in fact, there is) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_9_mode5_' + i);
+				rangeInput.setAttribute('value', mode5Array[9]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_9_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_9_mode5_' + i);
+				textInput.setAttribute('value', mode5Array[9]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_9_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("The lux is greater than opening light but less than bright light (normal light) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_10_mode5_' + i);
+				rangeInput.setAttribute('value', mode5Array[10]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_10_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_10_mode5_' + i);
+				textInput.setAttribute('value', mode5Array[10]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_10_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerText = translationLoader.t("Lux is greater than strong light (strong sunshine) + presence:");
+				
+				var rangeInput = document.createElement('input');
+				rangeInput.setAttribute('type', 'range');
+				rangeInput.setAttribute('min', '0');
+				rangeInput.setAttribute('max', '100');
+				rangeInput.setAttribute('style', 'width:200px; margin-left:3px;');
+				rangeInput.setAttribute('id', 'range_11_mode5_' + i);
+				rangeInput.setAttribute('value', mode5Array[11]);
+				rangeInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('text_11_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell2.appendChild(rangeInput);
+
+				var textInput = document.createElement('input');
+				textInput.setAttribute('type', 'number');
+				textInput.setAttribute('min', '0');
+				textInput.setAttribute('max', '100');
+				textInput.setAttribute('style', 'width:40px; margin-left:3px;');
+				textInput.setAttribute('id', 'text_11_mode5_' + i);
+				textInput.setAttribute('value', mode5Array[11]);
+				textInput.addEventListener('input', (function(i) {
+					return function() {
+						document.getElementById('range_11_mode5_' + i).value = this.value;
+					}
+				})(i));
+				cell3.appendChild(textInput);
+				
+				cell4.innerText = '%';
+
+				// sorkiemeles ---------------------------------------------------------
+
+				 $('td').css('padding', '3px');
+
+				//console.log("Elem " + i + " neve:", asc[i].name);
+				//console.log(" → tempinakt:", asc[i].tempinakt);
+				//console.log(" → tempoutakt:", asc[i].tempoutakt);
+				//console.log(" → temptargetminakt:", asc[i].temptargetminakt);
+				//console.log(" → temptargetmaxakt:", asc[i].temptargetmaxakt);
+				//console.log(" → luxtakt:", asc[i].luxtakt);
+				//console.log(" → nyitluxakt:", asc[i].nyitluxakt);
+				//console.log(" → erosluxakt:", asc[i].erosluxakt);
+
+
+				// Ha a belso homerseklet kisebb vagy egyenlo mint a minimum celhomerseklet
+				if (parseFloat(asc[i].tempinakt) <= parseFloat(asc[i].temptargetminakt)) {
+
+					// Ha a belso homerseklet nagyobb mint a kulso
+					if (parseFloat(asc[i].tempinakt) > parseFloat(asc[i].tempoutakt)) {
+
+						// Ha a fenyero a nyitasi es eros feny kozott van (kozepes feny)
+						if (parseFloat(asc[i].nyitluxakt) < parseFloat(asc[i].luxtakt) && parseFloat(asc[i].luxtakt) < parseFloat(asc[i].erosluxakt)) {
+							document.getElementById('range_1_mode3_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_4_mode3_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+
+						// Gyenge feny
+						} else if (parseFloat(asc[i].luxtakt) <= parseFloat(asc[i].nyitluxakt)) {
+							document.getElementById('range_0_mode3_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_3_mode3_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+
+						// Eros feny
+						} else if (parseFloat(asc[i].luxtakt) >= parseFloat(asc[i].erosluxakt)) {
+							document.getElementById('range_2_mode3_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_5_mode3_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						}
+
+					// Ha a belso homerseklet kisebb vagy egyenlo mint a kulso
+					} else {
+						if (parseFloat(asc[i].nyitluxakt) < parseFloat(asc[i].luxtakt) && parseFloat(asc[i].luxtakt) < parseFloat(asc[i].erosluxakt)) {
+							document.getElementById('range_7_mode3_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_10_mode3_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						} else if (parseFloat(asc[i].luxtakt) <= parseFloat(asc[i].nyitluxakt)) {
+							document.getElementById('range_6_mode3_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_9_mode3_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						} else if (parseFloat(asc[i].luxtakt) >= parseFloat(asc[i].erosluxakt)) {
+							document.getElementById('range_8_mode3_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_11_mode3_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						}
+					}
+
+				// Ha a belso homerseklet nagyobb mint a maximum celhomerseklet
+				} else if (parseFloat(asc[i].tempinakt) > parseFloat(asc[i].temptargetmaxakt)) {
+
+					// Ha a belso homerseklet nagyobb mint a kulso
+					if (parseFloat(asc[i].tempinakt) > parseFloat(asc[i].tempoutakt)) {
+						if (parseFloat(asc[i].nyitluxakt) < parseFloat(asc[i].luxtakt) && parseFloat(asc[i].luxtakt) < parseFloat(asc[i].erosluxakt)) {
+							document.getElementById('range_1_mode5_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_4_mode5_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						} else if (parseFloat(asc[i].luxtakt) <= parseFloat(asc[i].nyitluxakt)) {
+							document.getElementById('range_0_mode5_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_3_mode5_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						} else if (parseFloat(asc[i].luxtakt) >= parseFloat(asc[i].erosluxakt)) {
+							document.getElementById('range_2_mode5_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_5_mode5_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						}
+					} else {
+						if (parseFloat(asc[i].nyitluxakt) < parseFloat(asc[i].luxtakt) && parseFloat(asc[i].luxtakt) < parseFloat(asc[i].erosluxakt)) {
+							document.getElementById('range_7_mode5_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_10_mode5_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						} else if (parseFloat(asc[i].luxtakt) <= parseFloat(asc[i].nyitluxakt)) {
+							document.getElementById('range_6_mode5_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_9_mode5_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						} else if (parseFloat(asc[i].luxtakt) >= parseFloat(asc[i].erosluxakt)) {
+							document.getElementById('range_8_mode5_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_11_mode5_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						}
+					}
+
+				// Ha a belso homerseklet a minimum es maximum celhomerseklet kozott van
+				} else {
+
+					// Ha a belso homerseklet nagyobb mint a kulso
+					if (parseFloat(asc[i].tempinakt) > parseFloat(asc[i].tempoutakt)) {
+						if (parseFloat(asc[i].nyitluxakt) < parseFloat(asc[i].luxtakt) && parseFloat(asc[i].luxtakt) < parseFloat(asc[i].erosluxakt)) {
+							document.getElementById('range_1_mode4_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_4_mode4_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						} else if (parseFloat(asc[i].luxtakt) <= parseFloat(asc[i].nyitluxakt)) {
+							document.getElementById('range_0_mode4_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_3_mode4_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						} else if (parseFloat(asc[i].luxtakt) >= parseFloat(asc[i].erosluxakt)) {
+							document.getElementById('range_2_mode4_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_5_mode4_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						}
+					} else {
+						if (parseFloat(asc[i].nyitluxakt) < parseFloat(asc[i].luxtakt) && parseFloat(asc[i].luxtakt) < parseFloat(asc[i].erosluxakt)) {
+							document.getElementById('range_7_mode4_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_10_mode4_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						} else if (parseFloat(asc[i].luxtakt) <= parseFloat(asc[i].nyitluxakt)) {
+							document.getElementById('range_6_mode4_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_9_mode4_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						} else if (parseFloat(asc[i].luxtakt) >= parseFloat(asc[i].erosluxakt)) {
+							document.getElementById('range_8_mode4_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+							document.getElementById('range_11_mode4_' + i).closest('tr').style.backgroundColor = '#21B9EC';
+						}
+					}
+				}
+
+				hideSaveStatus();
+
+				// adatgyujtes ---------------------------------------------------------
+
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				var submitButton = document.createElement('input');
+				submitButton.setAttribute('type', 'submit');
+				submitButton.classList.add('save-data');
+				submitButton.setAttribute('value', translationLoader.t("Save"));
+				submitButton.setAttribute('id', 'submitBtn_' + i);
+				cell2.appendChild(submitButton);
+
+				document.getElementById('submitBtn_' + i).addEventListener('click', (function(i_copy) {
+					return function() {
+						showSaveStatus();  // Show saving indicator. | Mentésjelző megjelenítése.
+
+						var data = {
+							Mode3: [],
+							Mode4: [],
+							Mode5: [],
+							Mode6: []
+						};
+
+						for (var j = 0; j < 12; j++) {
+							data.Mode3.push(document.getElementById('text_' + j + '_mode3_' + i_copy).value);
+							data.Mode4.push(document.getElementById('text_' + j + '_mode4_' + i_copy).value);
+							data.Mode5.push(document.getElementById('text_' + j + '_mode5_' + i_copy).value);
+						}
+						for (var j = 0; j < 4; j++) {
+							data.Mode6.push(document.getElementById('text_' + j + '_mode6_' + i_copy).value);
+						}
+
+						let mode1List = [];
+						let mode2List = [];
+
+						dropBlockConfigs.forEach(cfg => {
+							let zone = document.getElementById(cfg.targetId + '_' + i_copy);
+							if (!zone || !zone.dataset[cfg.datasetKey]) return;
+
+							let ids = zone.dataset[cfg.datasetKey].split(',').filter(Boolean);
+							ids.forEach(id => {
+								if (cfg.mode === 'Mode1') {
+									mode1List.push(cfg.modePrefix ? `${cfg.modePrefix}:${id}` : id);
+								} else if (cfg.mode === 'Mode2') {
+									mode2List.push(id);
+								}
+							});
+						});
+
+						var mode1QueryString = "Mode1=" + encodeURIComponent(mode1List.join(','));
+						var mode2QueryString = "Mode2=" + encodeURIComponent(mode2List.join(','));
+						var mode3QueryString = "Mode3=" + encodeURIComponent(data.Mode3.join(","));
+						var mode4QueryString = "Mode4=" + encodeURIComponent(data.Mode4.join(","));
+						var mode5QueryString = "Mode5=" + encodeURIComponent(data.Mode5.join(","));
+						var mode6QueryString = "Mode6=" + encodeURIComponent(data.Mode6.join(","));
+
+						var targetminsend = document.getElementById('targetmin_' + i_copy).value;
+						var targetmaxsend = document.getElementById('targetmax_' + i_copy).value;
+
+						var port = window.location.port ? ":" + window.location.port : "";
+						var baseUrl = window.location.origin;
+
+						var url = baseUrl + "/json.htm?type=command&param=updatehardware&htype=94&extra=ASC&idx=" + asc[i_copy].id +
+							"&enabled=true&datatimeout=0&name=" + encodeURIComponent(asc[i_copy].name) +
+							"&address=" + encodeURIComponent(asc[i_copy].host) + "&port=" + encodeURIComponent(asc[i_copy].port) +
+							"&username=" + encodeURIComponent(asc[i_copy].uname) + "&password=" + encodeURIComponent(asc[i_copy].pass) +
+							"&" + mode1QueryString + "&" + mode2QueryString + "&" +
+							mode3QueryString + "&" + mode4QueryString + "&" +
+							mode5QueryString + "&" + mode6QueryString;
+
+						var completedRequests = 0;
+
+						function sendRequest(url, data) {
+							var xhr = new XMLHttpRequest();
+							xhr.open("POST", url, true);
+							xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+							xhr.onreadystatechange = function () {
+								if (xhr.readyState === 4) {
+									if (xhr.status === 200) {
+										completedRequests++;
+										if (completedRequests === 1) {
+											const portnum = window.location.port ? ":" + window.location.port : "";
+											const baseUrl = window.location.origin;
+
+											setTimeout(function () {
+												$.getJSON("/json.htm?type=command&param=getdevices", function(devicesResult) {
+													const redonyHardwareID = asc[i_copy].id;
+													let idxTargetMin = null;
+													let idxTargetMax = null;
+
+													(Array.isArray(devicesResult.result) ? devicesResult.result : []).forEach(device => {
+														if (device.HardwareID == redonyHardwareID && device.Unit == 3) {
+															idxTargetMin = device.idx;
+														}
+														if (device.HardwareID == redonyHardwareID && device.Unit == 4) {
+															idxTargetMax = device.idx;
+														}
+													});
+
+													if (!idxTargetMin || !idxTargetMax) {
+													hideSaveStatus();
+													alert(translationLoader.t("Save failed") + ": missing setpoint device | hiányzó célhőmérséklet eszköz");
+													return;
+												}
+												const setpointurlMin = `${baseUrl}/json.htm?type=command&param=setsetpoint&idx=${idxTargetMin}&setpoint=${encodeURIComponent(targetminsend)}`;
+													const setpointurlMax = `${baseUrl}/json.htm?type=command&param=setsetpoint&idx=${idxTargetMax}&setpoint=${encodeURIComponent(targetmaxsend)}`;
+
+													Promise.all([$.getJSON(setpointurlMin), $.getJSON(setpointurlMax)]).then(results => {
+												if (results.some(result => result.status !== "OK")) {
+													throw new Error("Domoticz API returned a non-OK status | A Domoticz API hibás állapotot adott vissza");
+												}
+												location.reload();
+											}).catch(e => {
+												hideSaveStatus();
+												const details = e && e.status ? `HTTP ${e.status}` : (e && e.message ? e.message : String(e));
+												alert(translationLoader.t("Save failed") + ": " + details);
+											});  // Verify both setpoints before reloading | Mindkét célhőmérséklet mentését ellenőrizzük frissítés előtt
+												});
+											}, 5000);  // 5 másodperc várakozás az updatehardware után
+										}
+									} else {
+										hideSaveStatus();
+										alert(translationLoader.t("Save failed") + ": " + asc[i_copy].name + " (HTTP " + xhr.status + ")");
+									}
+								}
+							};
+							xhr.onerror = function () { hideSaveStatus(); alert(translationLoader.t("Save failed") + ": " + asc[i_copy].name); };
+							xhr.timeout = 15000;
+							xhr.ontimeout = xhr.onerror;
+							xhr.send(JSON.stringify(data));
+						}
+						sendRequest(url, data);
+					};
+				})(i));
+			}
+		}
+	}).catch(e => { console.error("ASC initialization failed | ASC inicializálási hiba:", e); hideSaveStatus(); document.getElementById("status").textContent = String(e); });
+	</script>
