@@ -398,10 +398,12 @@ class BasePlugin:
 		if 22 not in Devices:
 			Domoticz.Device(Name=self.tl.t("Vibration status alert"), Unit=22, Type=243, Subtype=22, Used=1).Create()
 			devicecreated.append(deviceparam(22, 0, self.tl.t("No alert")))
+			self.addfavorite(Devices[22].ID)
 
 		if 23 not in Devices:
 			Domoticz.Device(Name=self.tl.t("Wind alert"), Unit=23, Type=243, Subtype=22, Used=1).Create()
 			devicecreated.append(deviceparam(23, 0, self.tl.t("No alert")))
+			self.addfavorite(Devices[23].ID)
 
 		# Initialize newly created devices | ha bármilyen eszközt hoztak létre az onStart()-ban, frissíteni kell az alapértelmezett beállításait
 		for device in devicecreated:
@@ -711,7 +713,7 @@ class BasePlugin:
 				
 					if self.intemp > self.outtemp :
 						Domoticz.Debug("Colder outside than inside | Kint hidegebb van, mint bent")
-						if self.lux < self.nyitlux :
+						if self.lux <= self.nyitlux :
 							Domoticz.Debug("Lux below opening threshold | Luxérték a nyitási küszöb alatt")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
@@ -733,7 +735,7 @@ class BasePlugin:
 								Domoticz.Debug(("self.H2 = "+format(self.H2)) + ' | Mért vagy számított érték')
 								self.redonypercent(self.H2)
 
-						elif self.lux > self.eroslux :
+						elif self.lux >= self.eroslux :
 							Domoticz.Debug("Lux above strong-light threshold | Luxérték az erős fény küszöb felett")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
@@ -747,7 +749,7 @@ class BasePlugin:
 
 					else :
 						Domoticz.Debug("Warmer outside than inside | Kint melegebb van, mint bent")
-						if self.lux < self.nyitlux :
+						if self.lux <= self.nyitlux :
 							Domoticz.Debug("Lux below opening threshold | Luxérték a nyitási küszöb alatt")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
@@ -771,7 +773,7 @@ class BasePlugin:
 								Domoticz.Debug(("self.H8 = "+format(self.H8)) + ' | Mért vagy számított érték')
 								self.redonypercent(self.H8)
 
-						elif self.lux > self.eroslux :
+						elif self.lux >= self.eroslux :
 							Domoticz.Debug("Lux above strong-light threshold | Luxérték az erős fény küszöb felett")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
@@ -789,7 +791,7 @@ class BasePlugin:
 
 					if self.intemp > self.outtemp :
 						Domoticz.Debug("Colder outside than inside | Kint hidegebb van, mint bent")
-						if self.lux < self.nyitlux :
+						if self.lux <= self.nyitlux :
 							Domoticz.Debug("Lux below opening threshold | Luxérték a nyitási küszöb alatt")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
@@ -814,7 +816,7 @@ class BasePlugin:
 								Domoticz.Debug(("self.M2 = "+format(self.M2)) + ' | Mért vagy számított érték')
 								self.redonypercent(self.M2)
 
-						elif self.lux > self.eroslux :
+						elif self.lux >= self.eroslux :
 							Domoticz.Debug("Lux above strong-light threshold | Luxérték az erős fény küszöb felett")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
@@ -829,7 +831,7 @@ class BasePlugin:
 
 					else :
 						Domoticz.Debug("Warmer outside than inside | Kint melegebb van, mint bent")
-						if self.lux < self.nyitlux :
+						if self.lux <= self.nyitlux :
 							Domoticz.Debug("Lux below opening threshold | Luxérték a nyitási küszöb alatt")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
@@ -853,7 +855,7 @@ class BasePlugin:
 								Domoticz.Debug(("self.M8 = "+format(self.M8)) + ' | Mért vagy számított érték')
 								self.redonypercent(self.M8)
 
-						elif self.lux > self.eroslux :
+						elif self.lux >= self.eroslux :
 							Domoticz.Debug("Lux above strong-light threshold | Luxérték az erős fény küszöb felett")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
@@ -870,7 +872,7 @@ class BasePlugin:
 
 					if self.intemp > self.outtemp :
 						Domoticz.Debug("Colder outside than inside | Kint hidegebb van, mint bent")
-						if self.lux < self.nyitlux :
+						if self.lux <= self.nyitlux :
 							Domoticz.Debug("Lux below opening threshold | Luxérték a nyitási küszöb alatt")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
@@ -894,7 +896,7 @@ class BasePlugin:
 								Domoticz.Debug(("self.N2 = "+format(self.N2)) + ' | Mért vagy számított érték')
 								self.redonypercent(self.N2)
 
-						elif self.lux > self.eroslux :
+						elif self.lux >= self.eroslux :
 							Domoticz.Debug("Lux above strong-light threshold | Luxérték az erős fény küszöb felett")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
@@ -908,7 +910,7 @@ class BasePlugin:
 
 					else :
 						Domoticz.Debug("Warmer outside than inside | Kint melegebb van, mint bent")
-						if self.lux < self.nyitlux :
+						if self.lux <= self.nyitlux :
 							Domoticz.Debug("Lux below opening threshold | Luxérték a nyitási küszöb alatt")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
@@ -932,7 +934,7 @@ class BasePlugin:
 								Domoticz.Debug(("self.N8 = "+format(self.N8)) + ' | Mért vagy számított érték')
 								self.redonypercent(self.N8)
 
-						elif self.lux > self.eroslux :
+						elif self.lux >= self.eroslux :
 							Domoticz.Debug("Lux above strong-light threshold | Luxérték az erős fény küszöb felett")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
@@ -1171,7 +1173,7 @@ class BasePlugin:
 			Domoticz.Debug(("minlux_values = " + format(minlux_values)) + ' | Mért vagy számított érték')
 			Domoticz.Debug(("maxlux_values = " + format(maxlux_values)) + ' | Mért vagy számított érték')
 			self.min_lux = round(sum(minlux_values) / len(minlux_values), 2) if minlux_values else 1
-			self.max_lux = round(sum(maxlux_values) / len(maxlux_values), 2) if maxlux_values else 100
+			self.max_lux = round(sum(maxlux_values) / len(maxlux_values), 2) if maxlux_values else 10000
 
 			Domoticz.Debug((f"self.min_lux = {self.min_lux}, self.max_lux = {self.max_lux}") + ' | Mért vagy számított érték')
 
@@ -1187,6 +1189,10 @@ class BasePlugin:
 		Devices[16].Update(nValue=0, sValue=str(self.nyitlux), TimedOut=False)
 
 		self.eroslux = float((self.max_lux * self.eroslux_param) / 100)
+
+		if self.nyitlux >= self.eroslux:
+			Domoticz.Error(f"Invalid lux thresholds: opening={self.nyitlux}, strong={self.eroslux} | Hibás luxhatárok: nyitási={self.nyitlux}, erős={self.eroslux}")
+
 		Domoticz.Debug(("self.eroslux = " + str(self.eroslux)) + ' | Mért vagy számított érték')
 		Devices[17].Update(nValue=0, sValue=str(self.eroslux), TimedOut=False)
 
@@ -1680,55 +1686,43 @@ def parseCSVparamslist(strCSV):
 		i+=1
 	return listvalsparams
 
+def parse_sensor_ids(strCSV, sensor_type):
+	result = []
+	current_type = None
+
+	for item in strCSV.split(","):
+		item = item.strip()
+
+		if ":" in item:
+			prefix, value = item.split(":", 1)
+			current_type = prefix.strip().upper()
+		else:
+			value = item
+
+		if current_type == sensor_type and value.strip().isdigit():
+			result.append(int(value.strip()))
+
+	return result
+
+
 def parse_B(strCSV):
+	return parse_sensor_ids(strCSV, "B")
 
-	s = strCSV
-
-	pattern = r'(?:B:|,|^)(\d+)'
-
-	listvalsparams = list(map(int, re.findall(pattern,s)))
-
-	return listvalsparams
 
 def parse_K(strCSV):
+	return parse_sensor_ids(strCSV, "K")
 
-	s = strCSV
-
-	pattern = r'(?:K:|,|^)(\d+)'
-
-	listvalsparams = list(map(int, re.findall(pattern,s)))
-
-	return listvalsparams
 
 def parse_F(strCSV):
+	return parse_sensor_ids(strCSV, "F")
 
-	s = strCSV
-
-	pattern = r'(?:F:|,|^)(\d+)'
-
-	listvalsparams = list(map(int, re.findall(pattern,s)))
-
-	return listvalsparams
 
 def parse_S(strCSV):
+	return parse_sensor_ids(strCSV, "S")
 
-	s = strCSV
-
-	pattern = r'(?:S:|,|^)(\d+)'
-
-	listvalsparams = list(map(int, re.findall(pattern,s)))
-
-	return listvalsparams
 
 def parse_V(strCSV):
-
-	s = strCSV
-
-	pattern = r'(?:V:|,|^)(\d+)'
-
-	listvalsparams = list(map(int, re.findall(pattern,s)))
-
-	return listvalsparams
+	return parse_sensor_ids(strCSV, "V")
 
 def DomoticzAPI(APICall):
 
