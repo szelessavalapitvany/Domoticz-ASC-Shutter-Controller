@@ -4,13 +4,13 @@ Author: szelessav, https://www.szelessavmuhely.hu/hu/redony_vezerles
 Version: 1.3.1 (2026-10-17)
 """
 """
-<plugin key="ASC" name="Redöny vezérlő (ASC (Automatic Shutter Controller))" author="szelessav" version="1.3.1" externallink="https://www.szelessavmuhely.hu/hu/redony_vezerles">
+<plugin key="ASC" name="ASC (Automatic Shutter Controller) / Redöny vezérlő" author="szelessav" version="1.3.1" externallink="https://www.szelessavmuhely.hu/hu/redony_vezerles">
 	<description>
 	<h2>ASC (Automatic Shutter Controller)</h2><br/>
 	<br/>
 	<h3>Setup and configuration: | Beállítás és konfigurálás: </h3>
 	<br/>
-	<strong><a href="#/Custom/ASC_Shutter_Redony">HTML setup!</a></strong> (Csak már létező modulhoz!/Only for existing modules!)
+	<strong><a href="#/Custom/ASC_Shutter_Redony">HTML setup!</a></strong> (Only for existing modules! / Csak már létező modulhoz!)
 	<br/>
 	<br/>
 	<h4>Value parameters | Értékparaméterek:</h4><br/>
@@ -48,7 +48,7 @@ Version: 1.3.1 (2026-10-17)
 
 		<param field="Mode5" label="If the internal temperature is higher than the target max. (100,100,100,100,100,100,50,50,10,50,50,50)" width="250px" required="true" default="100,100,100,100,100,100,50,50,10,50,50,50"/>
 
-		<param field="Mode6" label="Logging Level (Python Only =2, Basic =62, All =1, None =0), Update cycle, presence detection name (default: 0,5,Phone,Login)" width="250px" required="true" default="0,5,Telefon,emailcim"/>
+		<param field="Mode6" label="Logging Level (Python Only =2, Basic =62, All =1, None =0), Update cycle, presence detection name (default: 0,5,Phone)" width="250px" required="true" default="0,5,Telefon"/>
 	</params>
 	
 </plugin>
@@ -105,6 +105,7 @@ class BasePlugin:
 
 		self.debug = True
 		self.ActiveSensors = {}
+		self._fav_actions = {}
 		self.OutTempSensors = []
 		self.InTempSensors = []
 		self.intemp = 22.0
@@ -136,7 +137,6 @@ class BasePlugin:
 		self.eroslux = 1500.0
 		self.hiszterezis = 1.0
 		listlux = []
-		self.loginemail = "ASC_mail"
 		self.current_hour = datetime.now().hour
 		self.now_outtemp = 20.0
 		self.now_lux = None
@@ -176,9 +176,6 @@ class BasePlugin:
 
 		if len(paramslist) > 2:
 			self.jelenlet = paramslist[2]
-
-		if len(paramslist) > 3:
-			self.loginemail = paramslist[3]
 
 		# Configure log level | loggolási szint beállítása
 		try:
@@ -301,7 +298,7 @@ class BasePlugin:
 			Options = {"LevelActions": "||",
 				"LevelNames":  self.tl.t("Off|Automata|0|5|10|25|50|75|100%"),
 				"LevelOffHidden": "false",
-				"SelectorStyle": "0"}
+				"SelectorStyle": "1"}
 			Domoticz.Device(Name=self.tl.t("Shutter mode"), Unit=1, TypeName="Selector Switch", Switchtype=18, Image=19,
 				Options=Options, Used=1).Create()
 			devicecreated.append(deviceparam(1, 0, "10")) 
@@ -331,7 +328,7 @@ class BasePlugin:
 			Options = {"LevelActions": "||",
 					   "LevelNames": self.tl.t("Off|1|2|3|4|5|6|7|8|9|10|20|30|40|50"),
 					   "LevelOffHidden": "true",
-					   "SelectorStyle": "0"}
+					   "SelectorStyle": "1"}
 			Domoticz.Device(Name= self.tl.t("Opening lux"), Unit=9, TypeName="Selector Switch", Switchtype=18, Image=19,
 							Options=Options, Used=1).Create()
 			devicecreated.append(deviceparam(9, 0, "10"))
@@ -339,7 +336,7 @@ class BasePlugin:
 			Options = {"LevelActions": "||",
 					   "LevelNames": self.tl.t("Off|10|20|30|50|60|70|80|90"),
 					   "LevelOffHidden": "true",
-					   "SelectorStyle": "0"}
+					   "SelectorStyle": "1"}
 			Domoticz.Device(Name= self.tl.t("Strong Light lux"), Unit=10, TypeName="Selector Switch", Switchtype=18, Image=19,
 							Options=Options, Used=1).Create()
 			devicecreated.append(deviceparam(10, 0, "60"))
@@ -347,21 +344,21 @@ class BasePlugin:
 			Options = {"LevelActions": "||",
 					   "LevelNames": self.tl.t("Off|1|2|3|4|5|6|7|8|9|10"),
 					   "LevelOffHidden": "true",
-					   "SelectorStyle": "0"}
+					   "SelectorStyle": "1"}
 			Domoticz.Device(Name= self.tl.t("Lux max-min history day"), Unit=11, TypeName="Selector Switch", Switchtype=18, Image=19,
 							Options=Options, Used=1).Create()
 			devicecreated.append(deviceparam(11, 0, "40"))
 		if 12 not in Devices:
 			Options = {"LevelActions": "||",
 					   "LevelNames": self.tl.t("Off|10|20|30|40|50|60|70|80|90|100"),
-					   "SelectorStyle": "0"}
+					   "SelectorStyle": "1"}
 			Domoticz.Device(Name= self.tl.t("Wind speed closing limit km/h"), Unit=12, TypeName="Selector Switch", Switchtype=18, Image=20,
 							Options=Options, Used=1).Create()
 			devicecreated.append(deviceparam(12, 0, "0"))
 		if 15 not in Devices:
 			Options = {"LevelActions": "||",
 					   "LevelNames": self.tl.t("Off|1|2|3|4|5|10|15|20|25|30%"),
-					   "SelectorStyle": "0"}
+					   "SelectorStyle": "1"}
 			Domoticz.Device(Name= self.tl.t("Lux hysteresis percentage"), Unit=15, TypeName="Selector Switch", Switchtype=18, Image=19,
 							Options=Options, Used=1).Create()
 			devicecreated.append(deviceparam(15, 0, "10"))
@@ -380,7 +377,7 @@ class BasePlugin:
 			Options = {"LevelActions": "||",
 					   "LevelNames": self.tl.t("Off|Tilt|Vibrate|Free Fall"),
 					   "LevelOffHidden": "false",
-					   "SelectorStyle": "0"}
+					   "SelectorStyle": "1"}
 			Domoticz.Device(Name= self.tl.t("Vibration sensitivity"), Unit=19, TypeName="Selector Switch", Switchtype=18, Image=19,
 							Options=Options, Used=1).Create()
 			devicecreated.append(deviceparam(19, 0, "20"))
@@ -393,7 +390,7 @@ class BasePlugin:
 			Options = {"LevelActions": "||",
 					   "LevelNames": self.tl.t("Off|10 minute|30 minute|1 hour|3 hour|6 hour|12 hour"),
 					   "LevelOffHidden": "true",
-					   "SelectorStyle": "0"}
+					   "SelectorStyle": "1"}
 			Domoticz.Device(Name= self.tl.t("Vibration closing time"), Unit=21, TypeName="Selector Switch", Switchtype=18, Image=19,
 							Options=Options, Used=1).Create()
 			devicecreated.append(deviceparam(21, 0, "10"))
@@ -434,7 +431,7 @@ class BasePlugin:
 			self.ActiveSensors[sensor] = True
 
 		self.parameter_change()
-
+		self.applyfavorites()
 	
 	def parameter_change(self):
 
@@ -1587,6 +1584,33 @@ class BasePlugin:
 
 		Domoticz.Debug((f"LastSwitchTime = {SwitchTime}") + ' | Részletes naplóadat')
 		return SwitchTime
+
+	def addfavorite(self, deviceidx):
+		self._fav_actions[deviceidx] = "add"
+
+	def removefavorite(self, deviceidx):
+		# csak akkor, ha erre az idx-re még nem volt ADD
+		if self._fav_actions.get(deviceidx) != "add":
+			self._fav_actions[deviceidx] = "remove"
+
+	def applyfavorites(self):
+
+		Domoticz.Debug(
+			"applyfavorites(): _fav_actions = {}".format(self._fav_actions)
+		)
+
+		for idx, action in self._fav_actions.items():
+			if action == "add":
+				DomoticzAPI(
+					"idx={}&isfavorite=1&param=makefavorite&type=command".format(idx)
+				)
+			elif action == "remove":
+				DomoticzAPI(
+					"idx={}&isfavorite=0&param=makefavorite&type=command".format(idx)
+				)
+
+		# reset következő ciklusra
+		self._fav_actions.clear()
 
 
 global _plugin
