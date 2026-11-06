@@ -67,13 +67,13 @@
 
 		window.TranslationLoader = TranslationLoader;
 	}
-		var script = document.createElement('script');
-		script.src = 'templates/asc_viewer.js?' + Date.now();
-		window.ascViewerLoaded = new Promise((resolve, reject) => {
-			script.onload = resolve;
-			script.onerror = () => reject(new Error("ASC viewer script failed to load | Az ASC viewer szkript nem tölthető be"));
-			document.head.appendChild(script);
-		});
+	var script = document.createElement('script');
+	script.src = 'templates/asc_viewer.js?' + Date.now();
+	window.ascViewerLoaded = new Promise((resolve, reject) => {
+		script.onload = () => typeof window.getRedony === 'function' ? resolve() : reject(new Error("getRedony is not defined | A getRedony függvény nem érhető el"));
+		script.onerror = () => reject(new Error("ASC viewer script failed to load | Az ASC viewer szkript nem tölthető be"));
+		document.head.appendChild(script);
+	});
 		
 	</script>
 	<div id="asc_content"></div>
