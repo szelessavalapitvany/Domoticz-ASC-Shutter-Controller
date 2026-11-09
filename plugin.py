@@ -198,29 +198,29 @@ class BasePlugin:
 		Domoticz.Debug("Cold parameter count | Hideg paraméterek száma = "+format(len(hideg)))
 		if len(hideg) >= 12 :
 			self.H1 = hideg[0]
-			Domoticz.Debug(("self.H1 = "+format(self.H1)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position H1 | Redőnypozíció H1: {self.H1}")
 			self.H2 = hideg[1]
-			Domoticz.Debug(("self.H2 = "+format(self.H2)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position H2 | Redőnypozíció H2: {self.H2}")
 			self.H3 = hideg[2]
-			Domoticz.Debug(("self.H3 = "+format(self.H3)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position H3 | Redőnypozíció H3: {self.H3}")
 			self.H4 = hideg[3]
-			Domoticz.Debug(("self.H4 = "+format(self.H4)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position H4 | Redőnypozíció H4: {self.H4}")
 			self.H5 = hideg[4]
-			Domoticz.Debug(("self.H5 = "+format(self.H5)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position H5 | Redőnypozíció H5: {self.H5}")
 			self.H6 = hideg[5]
-			Domoticz.Debug(("self.H6 = "+format(self.H6)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position H6 | Redőnypozíció H6: {self.H6}")
 			self.H7 = hideg[6]
-			Domoticz.Debug(("self.H7 = "+format(self.H7)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position H7 | Redőnypozíció H7: {self.H7}")
 			self.H8 = hideg[7]
-			Domoticz.Debug(("self.H8 = "+format(self.H8)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position H8 | Redőnypozíció H8: {self.H8}")
 			self.H9 = hideg[8]
-			Domoticz.Debug(("self.H9 = "+format(self.H9)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position H9 | Redőnypozíció H9: {self.H9}")
 			self.H10 = hideg[9]
-			Domoticz.Debug(("self.H10 = "+format(self.H10)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position H10 | Redőnypozíció H10: {self.H10}")
 			self.H11 = hideg[10]
-			Domoticz.Debug(("self.H11 = "+format(self.H11)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position H11 | Redőnypozíció H11: {self.H11}")
 			self.H12 = hideg[11]
-			Domoticz.Debug(("self.H12 = "+format(self.H12)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position H12 | Redőnypozíció H12: {self.H12}")
 		else :
 			Domoticz.Debug("Missing cold parameter | Hiányzó hideg paraméter")
 
@@ -229,29 +229,29 @@ class BasePlugin:
 		Domoticz.Debug("Normal parameter count | Normál paraméterek száma = "+format(len(normal)))
 		if len(normal) >= 12 :
 			self.N1 = normal[0]
-			Domoticz.Debug(("self.N1 = "+format(self.N1)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position N1 | Redőnypozíció N1: {self.N1}")
 			self.N2 = normal[1]
-			Domoticz.Debug(("self.N2 = "+format(self.N2)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position N2 | Redőnypozíció N2: {self.N2}")
 			self.N3 = normal[2]
-			Domoticz.Debug(("self.N3 = "+format(self.N3)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position N3 | Redőnypozíció N3: {self.N3}")
 			self.N4 = normal[3]
-			Domoticz.Debug(("self.N4 = "+format(self.N4)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position N4 | Redőnypozíció N4: {self.N4}")
 			self.N5 = normal[4]
-			Domoticz.Debug(("self.N5 = "+format(self.N5)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position N5 | Redőnypozíció N5: {self.N5}")
 			self.N6 = normal[5]
-			Domoticz.Debug(("self.N6 = "+format(self.N6)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position N6 | Redőnypozíció N6: {self.N6}")
 			self.N7 = normal[6]
-			Domoticz.Debug(("self.N7 = "+format(self.N7)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position N7 | Redőnypozíció N7: {self.N7}")
 			self.N8 = normal[7]
-			Domoticz.Debug(("self.N8 = "+format(self.N8)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position N8 | Redőnypozíció N8: {self.N8}")
 			self.N9 = normal[8]
-			Domoticz.Debug(("self.N9 = "+format(self.N9)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position N9 | Redőnypozíció N9: {self.N9}")
 			self.N10 = normal[9]
-			Domoticz.Debug(("self.N10 = "+format(self.N10)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position N10 | Redőnypozíció N10: {self.N10}")
 			self.N11 = normal[10]
-			Domoticz.Debug(("self.N11 = "+format(self.N11)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position N11 | Redőnypozíció N11: {self.N11}")
 			self.N12 = normal[11]
-			Domoticz.Debug(("self.N12 = "+format(self.N12)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position N12 | Redőnypozíció N12: {self.N12}")
 		else :
 			Domoticz.Debug("Missing normal parameter | Hiányzó normál paraméter")
 
@@ -260,35 +260,35 @@ class BasePlugin:
 		Domoticz.Debug("Warm parameter count | Meleg paraméterek száma = "+format(len(meleg)))
 		if len(meleg) >= 12:
 			self.M1 = meleg[0]
-			Domoticz.Debug(("self.M1 = "+format(self.M1)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position M1 | Redőnypozíció M1: {self.M1}")
 			self.M2 = meleg[1]
-			Domoticz.Debug(("self.M2 = "+format(self.M2)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position M2 | Redőnypozíció M2: {self.M2}")
 			self.M3 = meleg[2]
-			Domoticz.Debug(("self.M3 = "+format(self.M3)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position M3 | Redőnypozíció M3: {self.M3}")
 			self.M4 = meleg[3]
-			Domoticz.Debug(("self.M4 = "+format(self.M4)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position M4 | Redőnypozíció M4: {self.M4}")
 			self.M5 = meleg[4]
-			Domoticz.Debug(("self.M5 = "+format(self.M5)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position M5 | Redőnypozíció M5: {self.M5}")
 			self.M6 = meleg[5]
-			Domoticz.Debug(("self.M6 = "+format(self.M6)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position M6 | Redőnypozíció M6: {self.M6}")
 			self.M7 = meleg[6]
-			Domoticz.Debug(("self.M7 = "+format(self.M7)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position M7 | Redőnypozíció M7: {self.M7}")
 			self.M8 = meleg[7]
-			Domoticz.Debug(("self.M8 = "+format(self.M8)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position M8 | Redőnypozíció M8: {self.M8}")
 			self.M9 = meleg[8]
-			Domoticz.Debug(("self.M9 = "+format(self.M9)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position M9 | Redőnypozíció M9: {self.M9}")
 			self.M10 = meleg[9]
-			Domoticz.Debug(("self.M10 = "+format(self.M10)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position M10 | Redőnypozíció M10: {self.M10}")
 			self.M11 = meleg[10]
-			Domoticz.Debug(("self.M11 = "+format(self.M11)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position M11 | Redőnypozíció M11: {self.M11}")
 			self.M12 = meleg[11]
-			Domoticz.Debug(("self.M12 = "+format(self.M12)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Shutter position M12 | Redőnypozíció M12: {self.M12}")
 		else :
 			Domoticz.Debug("Missing warm parameter | Hiányzó meleg paraméter")
 
 		# Check support for Domoticz.Status() | ellenőrizze, hogy a gazdagép domoticz verziója támogatja-e a Domoticz.Status() python keretfüggvényt
 		try:
-			Domoticz.Status(("This version of domoticz allows status logging by the plugin (in verbose mode)") + ' | Állapotinformáció')
+			Domoticz.Status("Domoticz status logging supported | A Domoticz támogatja az állapotnaplózást")
 		except Exception:
 			self.statussupported = False
 
@@ -420,10 +420,10 @@ class BasePlugin:
 		Domoticz.Debug("Light sensors | Fényérzékelők = {}".format(self.FenySensor))
 
 		self.WindSensor = parse_S(Parameters["Mode1"])
-		Domoticz.Debug(("self.WindSensor = {}".format(self.WindSensor)) + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Wind sensor IDs' + " | " + 'Szélérzékelő-azonosítók' + ": " + str("self.WindSensor = {}".format(self.WindSensor))))
 
 		self.VibrationSensor = parse_V(Parameters["Mode1"])
-		Domoticz.Debug(("self.VibrationSensor = {}".format(self.VibrationSensor)) + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Vibration sensor IDs' + " | " + 'Rezgésérzékelő-azonosítók' + ": " + str("self.VibrationSensor = {}".format(self.VibrationSensor))))
 
 		self.Redony = parseCSV(Parameters["Mode2"])
 		Domoticz.Debug("Shutters | Redőnyök = {}".format(self.Redony))
@@ -588,7 +588,7 @@ class BasePlugin:
 
 	def onCommand(self, Unit, Command, Level, Color):
 
-		Domoticz.Debug(("onCommand called for Unit {}: Command '{}', Level: {}".format(Unit, Command, Level)) + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Device command received' + " | " + 'Eszközparancs érkezett' + ": " + str("onCommand called for Unit {}: Command '{}', Level: {}".format(Unit, Command, Level))))
 
 		nvalue = 1 if Level > 0 else 0
 		svalue = str(Level)
@@ -613,12 +613,12 @@ class BasePlugin:
 
 		if self.VibrationSensor and self.Redony and Devices[1].sValue != "0" :
 
-			Domoticz.Debug((f"self.last_vibration = {self.last_vibration}") + ' | Mért vagy számított érték')
+			Domoticz.Debug(('Last vibration timestamp' + " | " + 'Utolsó rezgés időpontja' + ": " + str(f"self.last_vibration = {self.last_vibration}")))
 
 			if isinstance(self.last_vibration, datetime):
 				expire_time = self.last_vibration + timedelta(minutes=self.vibration_time_limit)
-				Domoticz.Debug((f"self.vibration_time_limit = {self.vibration_time_limit}") + ' | Mért vagy számított érték')
-				Domoticz.Debug((f"expire_time = {expire_time}") + ' | Mért vagy számított érték')
+				Domoticz.Debug(('Vibration protection duration' + " | " + 'Rezgésvédelmi időtartam' + ": " + str(f"self.vibration_time_limit = {self.vibration_time_limit}")))
+				Domoticz.Debug(('Vibration protection expiry' + " | " + 'Rezgésvédelem lejárata' + ": " + str(f"expire_time = {expire_time}")))
 				if datetime.now() < expire_time:
 					Domoticz.Debug("Keep shutters closed during vibration hold | Redőnyök zárva tartása rezgés miatt")
 					vibration_alert_msg = self.tl.t("Vibration alert")
@@ -677,31 +677,31 @@ class BasePlugin:
 				wind_alert_msg = self.tl.t("Wind alert")
 
 			elif Devices[1].sValue == "20":  # le
-				Domoticz.Debug(("redony 0%") + ' | Mért vagy számított érték')
+				Domoticz.Debug("Fixed shutter position: 0% | Rögzített redőnypozíció: 0%")
 				self.redonypercent(0)
 
 			elif Devices[1].sValue == "30":  # le
-				Domoticz.Debug(("redony 5%") + ' | Mért vagy számított érték')
+				Domoticz.Debug("Fixed shutter position: 5% | Rögzített redőnypozíció: 5%")
 				self.redonypercent(5)
 
 			elif Devices[1].sValue == "40":  # le
-				Domoticz.Debug(("redony 10%") + ' | Mért vagy számított érték')
+				Domoticz.Debug("Fixed shutter position: 10% | Rögzített redőnypozíció: 10%")
 				self.redonypercent(10)
 
 			elif Devices[1].sValue == "50":  # 25%
-				Domoticz.Debug(("redony 25%") + ' | Mért vagy számított érték')
+				Domoticz.Debug("Fixed shutter position: 25% | Rögzített redőnypozíció: 25%")
 				self.redonypercent(25)
 
 			elif Devices[1].sValue == "60":  # 50%
-				Domoticz.Debug(("redony 50%") + ' | Mért vagy számított érték')
+				Domoticz.Debug("Fixed shutter position: 50% | Rögzített redőnypozíció: 50%")
 				self.redonypercent(50)
 
 			elif Devices[1].sValue == "70":  # 75%
-				Domoticz.Debug(("redony 75%") + ' | Mért vagy számított érték')
+				Domoticz.Debug("Fixed shutter position: 75% | Rögzített redőnypozíció: 75%")
 				self.redonypercent(75)
 
 			elif Devices[1].sValue == "80":  # 100%
-				Domoticz.Debug(("redony 100%") + ' | Mért vagy számított érték')
+				Domoticz.Debug("Fixed shutter position: 100% | Rögzített redőnypozíció: 100%")
 				self.redonypercent(100)
 
 			elif Devices[1].sValue == "10":  # automata 
@@ -717,34 +717,34 @@ class BasePlugin:
 							Domoticz.Debug("Lux below opening threshold | Luxérték a nyitási küszöb alatt")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.H4 = "+format(self.H4)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position H4 | Redőnypozíció H4: {self.H4}")
 								self.redonypercent(self.H4)
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.H1 = "+format(self.H1)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position H1 | Redőnypozíció H1: {self.H1}")
 								self.redonypercent(self.H1)
 
 						elif self.nyitlux < self.lux < self.eroslux :
 							Domoticz.Debug("Lux between opening and strong-light thresholds | Luxérték a nyitási és erős fény küszöb között")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.H5 = "+format(self.H5)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position H5 | Redőnypozíció H5: {self.H5}")
 								self.redonypercent(self.H5)
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.H2 = "+format(self.H2)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position H2 | Redőnypozíció H2: {self.H2}")
 								self.redonypercent(self.H2)
 
 						elif self.lux >= self.eroslux :
 							Domoticz.Debug("Lux above strong-light threshold | Luxérték az erős fény küszöb felett")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.H6 = "+format(self.H6)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position H6 | Redőnypozíció H6: {self.H6}")
 								self.redonypercent(self.H6)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.H3 = "+format(self.H3)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position H3 | Redőnypozíció H3: {self.H3}")
 								self.redonypercent(self.H3)
 
 					else :
@@ -753,41 +753,41 @@ class BasePlugin:
 							Domoticz.Debug("Lux below opening threshold | Luxérték a nyitási küszöb alatt")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.H10 = "+format(self.H10)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position H10 | Redőnypozíció H10: {self.H10}")
 								self.redonypercent(self.H10)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.H7 = "+format(self.H7)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position H7 | Redőnypozíció H7: {self.H7}")
 								self.redonypercent(self.H7)
 
 						elif self.nyitlux < self.lux < self.eroslux :
 							Domoticz.Debug("Lux between opening and strong-light thresholds | Luxérték a nyitási és erős fény küszöb között")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.H11 = "+format(self.H11)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position H11 | Redőnypozíció H11: {self.H11}")
 								self.redonypercent(self.H11)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.H8 = "+format(self.H8)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position H8 | Redőnypozíció H8: {self.H8}")
 								self.redonypercent(self.H8)
 
 						elif self.lux >= self.eroslux :
 							Domoticz.Debug("Lux above strong-light threshold | Luxérték az erős fény küszöb felett")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.H12 = "+format(self.H12)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position H12 | Redőnypozíció H12: {self.H12}")
 								self.redonypercent(self.H12)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.H9 = "+format(self.H9)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position H9 | Redőnypozíció H9: {self.H9}")
 								self.redonypercent(self.H9)
 
 
 				elif self.intemp > self.targettemmax and self.intemp >= self.targettemmax :
-					Domoticz.Debug(("Melegebb van bent mint a célmax") + ' | Mért vagy számított érték')
+					Domoticz.Debug("Indoor temperature above maximum target | Belső hőmérséklet a maximális célérték felett")
 
 					if self.intemp > self.outtemp :
 						Domoticz.Debug("Colder outside than inside | Kint hidegebb van, mint bent")
@@ -795,12 +795,12 @@ class BasePlugin:
 							Domoticz.Debug("Lux below opening threshold | Luxérték a nyitási küszöb alatt")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.M4 = "+format(self.M4)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position M4 | Redőnypozíció M4: {self.M4}")
 								self.redonypercent(self.M4)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.M1 = "+format(self.M1)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position M1 | Redőnypozíció M1: {self.M1}")
 								self.redonypercent(self.M1)
 
 						
@@ -808,24 +808,24 @@ class BasePlugin:
 							Domoticz.Debug("Lux between opening and strong-light thresholds | Luxérték a nyitási és erős fény küszöb között")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.M5 = "+format(self.M5)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position M5 | Redőnypozíció M5: {self.M5}")
 								self.redonypercent(self.M5)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.M2 = "+format(self.M2)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position M2 | Redőnypozíció M2: {self.M2}")
 								self.redonypercent(self.M2)
 
 						elif self.lux >= self.eroslux :
 							Domoticz.Debug("Lux above strong-light threshold | Luxérték az erős fény küszöb felett")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.M6 = "+format(self.M6)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position M6 | Redőnypozíció M6: {self.M6}")
 								self.redonypercent(self.M6)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.M3 = "+format(self.M3)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position M3 | Redőnypozíció M3: {self.M3}")
 								self.redonypercent(self.M3)
 
 
@@ -835,36 +835,36 @@ class BasePlugin:
 							Domoticz.Debug("Lux below opening threshold | Luxérték a nyitási küszöb alatt")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.M10 = "+format(self.M10)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position M10 | Redőnypozíció M10: {self.M10}")
 								self.redonypercent(self.M10)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.M7 = "+format(self.M7)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position M7 | Redőnypozíció M7: {self.M7}")
 								self.redonypercent(self.M7)
 
 						elif self.nyitlux < self.lux < self.eroslux :
 							Domoticz.Debug("Lux between opening and strong-light thresholds | Luxérték a nyitási és erős fény küszöb között")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.M11 = "+format(self.M11)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position M11 | Redőnypozíció M11: {self.M11}")
 								self.redonypercent(self.M11)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.M8 = "+format(self.M8)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position M8 | Redőnypozíció M8: {self.M8}")
 								self.redonypercent(self.M8)
 
 						elif self.lux >= self.eroslux :
 							Domoticz.Debug("Lux above strong-light threshold | Luxérték az erős fény küszöb felett")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.M12 = "+format(self.M12)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position M12 | Redőnypozíció M12: {self.M12}")
 								self.redonypercent(self.M12)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.M9 = "+format(self.M9)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position M9 | Redőnypozíció M9: {self.M9}")
 								self.redonypercent(self.M9)
 
 				else :
@@ -876,36 +876,36 @@ class BasePlugin:
 							Domoticz.Debug("Lux below opening threshold | Luxérték a nyitási küszöb alatt")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.N4 = "+format(self.N4)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position N4 | Redőnypozíció N4: {self.N4}")
 								self.redonypercent(self.N4)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.N1 = "+format(self.N1)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position N1 | Redőnypozíció N1: {self.N1}")
 								self.redonypercent(self.N1)
 
 						elif self.nyitlux < self.lux < self.eroslux :
 							Domoticz.Debug("Lux between opening and strong-light thresholds | Luxérték a nyitási és erős fény küszöb között")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.N5 = "+format(self.N5)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position N5 | Redőnypozíció N5: {self.N5}")
 								self.redonypercent(self.N5)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.N2 = "+format(self.N2)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position N2 | Redőnypozíció N2: {self.N2}")
 								self.redonypercent(self.N2)
 
 						elif self.lux >= self.eroslux :
 							Domoticz.Debug("Lux above strong-light threshold | Luxérték az erős fény küszöb felett")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.N6 = "+format(self.N6)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position N6 | Redőnypozíció N6: {self.N6}")
 								self.redonypercent(self.N6)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.N3 = "+format(self.N3)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position N3 | Redőnypozíció N3: {self.N3}")
 								self.redonypercent(self.N3)
 
 					else :
@@ -914,36 +914,36 @@ class BasePlugin:
 							Domoticz.Debug("Lux below opening threshold | Luxérték a nyitási küszöb alatt")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.N10 = "+format(self.N10)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position N10 | Redőnypozíció N10: {self.N10}")
 								self.redonypercent(self.N10)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.N7 = "+format(self.N7)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position N7 | Redőnypozíció N7: {self.N7}")
 								self.redonypercent(self.N7)
 
 						elif self.nyitlux < self.lux < self.eroslux :
 							Domoticz.Debug("Lux between opening and strong-light thresholds | Luxérték a nyitási és erős fény küszöb között")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.N11 = "+format(self.N11)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position N11 | Redőnypozíció N11: {self.N11}")
 								self.redonypercent(self.N11)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.N8 = "+format(self.N8)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position N8 | Redőnypozíció N8: {self.N8}")
 								self.redonypercent(self.N8)
 
 						elif self.lux >= self.eroslux :
 							Domoticz.Debug("Lux above strong-light threshold | Luxérték az erős fény küszöb felett")
 							if self.jelenletInfo == True :
 								Domoticz.Debug("Presence detected | Jelenlét érzékelve")
-								Domoticz.Debug(("self.N12 = "+format(self.N12)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position N12 | Redőnypozíció N12: {self.N12}")
 								self.redonypercent(self.N12)
 
 							else :
 								Domoticz.Debug("No presence detected | Nem érzékelhető jelenlét")
-								Domoticz.Debug(("self.N9 = "+format(self.N9)) + ' | Mért vagy számított érték')
+								Domoticz.Debug(f"Shutter position N9 | Redőnypozíció N9: {self.N9}")
 								self.redonypercent(self.N9)
 		
 
@@ -955,7 +955,7 @@ class BasePlugin:
 				Domoticz.Debug("Wind alert unchanged, no update | Szélriasztás nem változott, nincs frissítés")
 
 		else :
-			Domoticz.Debug(("Nincs frissités, nincs még itt az ideje, majd:"+format(self.nextupdate)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(f"Next update scheduled at {self.nextupdate} | Következő frissítés: {self.nextupdate}")
 
 
 	def OpenMeteoAPI(self):
@@ -1001,9 +1001,9 @@ class BasePlugin:
 	def switchJelenlet(self):
 		
 		if self.jelenlet is not None:
-			Domoticz.Debug(("self.jelenlet name: "+format(self.jelenlet)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(('Presence group' + " | " + 'Jelenlétcsoport' + ": " + str("self.jelenlet name: "+format(self.jelenlet))))
 			self.jelenletInfo = JelenletAPI(self.jelenlet)
-			Domoticz.Debug(("jelenletInfo: "+format(self.jelenletInfo)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(('Presence detection result' + " | " + 'Jelenlétérzékelés eredménye' + ": " + str("jelenletInfo: "+format(self.jelenletInfo))))
 		else: 
 			self.jelenletInfo = True
 
@@ -1012,9 +1012,9 @@ class BasePlugin:
 
 		command = "Set Level&level="+str(percent)
 
-		Domoticz.Debug(("percent: "+format(percent)) + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Requested shutter position' + " | " + 'Kért redőnypozíció' + ": " + str("percent: "+format(percent))))
 
-		Domoticz.Debug(("command: "+format(command)) + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Shutter command' + " | " + 'Redőnyparancs' + ": " + str("command: "+format(command))))
 		devicesAPI = DomoticzAPI(
 			"type=devices&filter=light&order=Name" 
 			if float(Parameters["DomoticzVersion"]) <= 2023.1 
@@ -1024,7 +1024,7 @@ class BasePlugin:
 			for device in devicesAPI["result"]:
 				idx = int(device["idx"])
 				if idx in self.Redony:
-					Domoticz.Debug(("type=command&param=switchlight&idx={}&switchcmd={}".format(idx, command)) + ' | Mért vagy számított érték')
+					Domoticz.Debug(('Sending shutter API command' + " | " + 'Redőny API-parancs küldése' + ": " + str("type=command&param=switchlight&idx={}&switchcmd={}".format(idx, command))))
 					DomoticzAPI("type=command&param=switchlight&idx={}&switchcmd={}".format(idx, command))
 					Devices[2].Update(nValue=0, sValue=str(percent), TimedOut=False)
 		else:
@@ -1047,19 +1047,19 @@ class BasePlugin:
 				idx = int(device["idx"])
 				if idx in self.InTempSensors:
 					if "Temp" in device:
-						Domoticz.Debug(("device: {}-{} = {}".format(device["idx"], device["Name"], device["Temp"])) + ' | Mért vagy számított érték')
+						Domoticz.Debug(('Sensor reading' + " | " + 'Érzékelőérték' + ": " + str("device: {}-{} = {}".format(device["idx"], device["Name"], device["Temp"]))))
 						if not self.SensorTimedOut(idx, device["Name"], device["LastUpdate"]):
 							listintemps.append(device["Temp"])
 					else:
-						Domoticz.Error(("device: {}-{} is not a Temperature sensor".format(device["idx"], device["Name"])) + ' | Hiba részletei')
+						Domoticz.Error(('Invalid sensor type' + " | " + 'Hibás érzékelőtípus' + ": " + str("device: {}-{} is not a Temperature sensor".format(device["idx"], device["Name"]))))
 				
 				if idx in self.OutTempSensors:
 					if "Temp" in device:
-						Domoticz.Debug(("device: {}-{} = {}".format(device["idx"], device["Name"], device["Temp"])) + ' | Mért vagy számított érték')
+						Domoticz.Debug(('Sensor reading' + " | " + 'Érzékelőérték' + ": " + str("device: {}-{} = {}".format(device["idx"], device["Name"], device["Temp"]))))
 						if not self.SensorTimedOut(idx, device["Name"], device["LastUpdate"]):
 							listouttemps.append(device["Temp"])
 					else:
-						Domoticz.Error(("device: {}-{} is not a Temperature sensor".format(device["idx"], device["Name"])) + ' | Hiba részletei')
+						Domoticz.Error(('Invalid sensor type' + " | " + 'Hibás érzékelőtípus' + ": " + str("device: {}-{} is not a Temperature sensor".format(device["idx"], device["Name"]))))
 
 
 		# Calculate average indoor temperature | számítsa ki az átlagos belső hőmérsékletet
@@ -1116,25 +1116,25 @@ class BasePlugin:
 		
 		self.luxhistory = DomoticzAPI("type=command&param=graph&sensor=counter&range=month&idx={}".format(Devices[7].ID))
 
-		Domoticz.Debug(("self.luxhistory = " + format(self.luxhistory)) + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Lux history data' + " | " + 'Luxelőzmény-adatok' + ": " + str("self.luxhistory = " + format(self.luxhistory))))
 
 		if not isinstance(self.luxhistory, dict) or not isinstance(self.luxhistory.get("result"), list):
 			Domoticz.Error("Lux history is unavailable; using safe defaults | A luxelőzmények nem érhetők el; biztonságos alapértékek használata")
 			self.luxhistory = {"result": []}
 
-		Domoticz.Debug(("self.lastday = " + str(self.lastday)) + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Lux history period (days)' + " | " + 'Luxelőzmény időszaka (nap)' + ": " + str("self.lastday = " + str(self.lastday))))
 
 		# Get current and starting timestamps | Get current timestamp and calculate start_date timestamp
 		today_timestamp = time.time()
 		start_date_timestamp = today_timestamp - (self.lastday * 86400)  # Convert days to seconds
 
-		Domoticz.Debug((f"Start timestamp: {start_date_timestamp}, Today timestamp: {today_timestamp}") + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Lux history time range' + " | " + 'Luxelőzmény időtartománya' + ": " + str(f"Start timestamp: {start_date_timestamp}, Today timestamp: {today_timestamp}")))
 
 		try:
 			filtered_data = []
 			for entry in self.luxhistory['result']:
 				if 'd' not in entry:
-					Domoticz.Error((f"Missing 'd' key in entry: {entry}") + ' | Hiba részletei')
+					Domoticz.Error(('Lux history record missing date field' + " | " + 'Hiányzik a dátummező a luxelőzményből' + ": " + str(f"Missing 'd' key in entry: {entry}")))
 					continue
 
 				# Convert record date to timestamp | Convert entry date to timestamp
@@ -1157,35 +1157,35 @@ class BasePlugin:
 					try:
 						minlux_values.append(float(entry['lux_min']))
 					except ValueError as e:
-						Domoticz.Error((f"Error converting 'lux_min' to float: {entry['lux_min']}, error: {e}") + ' | Hiba részletei')
+						Domoticz.Error(('Invalid historical minimum lux value' + " | " + 'Hibás korábbi minimális luxérték' + ": " + str(f"Error converting 'lux_min' to float: {entry['lux_min']}, error: {e}")))
 				else:
-					Domoticz.Debug((f"No 'lux_min' in entry: {entry}") + ' | Mért vagy számított érték')
+					Domoticz.Debug(f"History record missing lux_min | Az előzményrekordból hiányzik a lux_min: {entry}")
 
 				if 'lux_max' in entry:
 					try:
 						maxlux_values.append(float(entry['lux_max']))
 					except ValueError as e:
-						Domoticz.Error((f"Error converting 'lux_max' to float: {entry['lux_max']}, error: {e}") + ' | Hiba részletei')
+						Domoticz.Error(('Invalid historical maximum lux value' + " | " + 'Hibás korábbi maximális luxérték' + ": " + str(f"Error converting 'lux_max' to float: {entry['lux_max']}, error: {e}")))
 				else:
-					Domoticz.Debug((f"No 'lux_max' in entry: {entry}") + ' | Mért vagy számított érték')
+					Domoticz.Debug(f"History record missing lux_max | Az előzményrekordból hiányzik a lux_max: {entry}")
 
 			# Set minimum and maximum lux | Set min_lux and max_lux values
-			Domoticz.Debug(("minlux_values = " + format(minlux_values)) + ' | Mért vagy számított érték')
-			Domoticz.Debug(("maxlux_values = " + format(maxlux_values)) + ' | Mért vagy számított érték')
+			Domoticz.Debug(('Historical minimum lux values' + " | " + 'Korábbi minimális luxértékek' + ": " + str("minlux_values = " + format(minlux_values))))
+			Domoticz.Debug(('Historical maximum lux values' + " | " + 'Korábbi maximális luxértékek' + ": " + str("maxlux_values = " + format(maxlux_values))))
 			self.min_lux = round(sum(minlux_values) / len(minlux_values), 2) if minlux_values else 1
 			self.max_lux = round(sum(maxlux_values) / len(maxlux_values), 2) if maxlux_values else 10000
 
-			Domoticz.Debug((f"self.min_lux = {self.min_lux}, self.max_lux = {self.max_lux}") + ' | Mért vagy számított érték')
+			Domoticz.Debug(('Calculated lux extrema' + " | " + 'Számított luxszélsőértékek' + ": " + str(f"self.min_lux = {self.min_lux}, self.max_lux = {self.max_lux}")))
 
 		except Exception as e:
-			Domoticz.Error(("Error in processing lux history data: " + str(e)) + ' | Hiba részletei')
+			Domoticz.Error(('Failed to process lux history' + " | " + 'Hiba a luxelőzmények feldolgozásakor' + ": " + str("Error in processing lux history data: " + str(e))))
 
 		# Calculate opening and strong-light thresholds | Calculate nyitlux and eroslux
 		if self.nyitlux_param is None:
-			Domoticz.Error(("nyitlux_param is None.") + ' | Hiba részletei')
+			Domoticz.Error(('Opening lux parameter is missing' + " | " + 'Hiányzik a nyitási luxparaméter' + ": " + str("nyitlux_param is None.")))
 
 		self.nyitlux = float(self.min_lux + self.nyitlux_param)
-		Domoticz.Debug(("self.nyitlux = " + str(self.nyitlux)) + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Opening lux threshold' + " | " + 'Nyitási luxküszöb' + ": " + str("self.nyitlux = " + str(self.nyitlux))))
 		Devices[16].Update(nValue=0, sValue=str(self.nyitlux), TimedOut=False)
 
 		self.eroslux = float((self.max_lux * self.eroslux_param) / 100)
@@ -1193,12 +1193,12 @@ class BasePlugin:
 		if self.nyitlux >= self.eroslux:
 			Domoticz.Error(f"Invalid lux thresholds: opening={self.nyitlux}, strong={self.eroslux} | Hibás luxhatárok: nyitási={self.nyitlux}, erős={self.eroslux}")
 
-		Domoticz.Debug(("self.eroslux = " + str(self.eroslux)) + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Strong-light lux threshold' + " | " + 'Erős fény luxküszöbe' + ": " + str("self.eroslux = " + str(self.eroslux))))
 		Devices[17].Update(nValue=0, sValue=str(self.eroslux), TimedOut=False)
 
 		# Read available light sensors | Fetch all devices for light sensors
 		listlux = []
-		Domoticz.Debug((f"self.FenySensor = {self.FenySensor}") + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Light sensor IDs' + " | " + 'Fényérzékelő-azonosítók' + ": " + str(f"self.FenySensor = {self.FenySensor}")))
 
 		luxdevicesAPI = DomoticzAPI(
 			"type=devices&filter=utility&order=Name" 
@@ -1213,13 +1213,13 @@ class BasePlugin:
 			for device in luxdevicesAPI["result"]:
 				idx = int(device["idx"])
 				if idx in self.FenySensor:
-					Domoticz.Debug((f"idx = {idx}") + ' | Mért vagy számított érték')
+					Domoticz.Debug(('Light sensor device ID' + " | " + 'Fényérzékelő eszközazonosítója' + ": " + str(f"idx = {idx}")))
 					if "Data" in device:
-						Domoticz.Debug((f"device: {device['idx']}-{device['Name']} = {device['Data']}") + ' | Mért vagy számított érték')
+						Domoticz.Debug(('Sensor reading' + " | " + 'Érzékelőérték' + ": " + str(f"device: {device['idx']}-{device['Name']} = {device['Data']}")))
 						if not self.SensorTimedOut(idx, device["Name"], device["LastUpdate"]):
 							listlux.append(int(device["Data"].split()[0]))
 					else:
-						Domoticz.Error((f"device: {device['idx']}-{device['Name']} is not a Lux sensor") + ' | Hiba részletei')
+						Domoticz.Error(('Invalid sensor type' + " | " + 'Hibás érzékelőtípus' + ": " + str(f"device: {device['idx']}-{device['Name']} is not a Lux sensor")))
 
 		# Calculate average illuminance | Átlagos megvilágítás számítása
 		nblux = len(listlux)
@@ -1271,14 +1271,14 @@ class BasePlugin:
 				idx = int(device["idx"])
 				if idx in self.WindSensor:
 					if "Data" in device:
-						Domoticz.Debug(("device: {}-{} = {}".format(device["idx"], device["Name"], device["Data"])) + ' | Mért vagy számított érték')
+						Domoticz.Debug(('Sensor reading' + " | " + 'Érzékelőérték' + ": " + str("device: {}-{} = {}".format(device["idx"], device["Name"], device["Data"]))))
 						dwind = device["Data"]
 						cdwind = float(dwind.split(";")[2])
-						Domoticz.Debug((f"device wind = {cdwind}") + ' | Mért vagy számított érték')
+						Domoticz.Debug(('Measured wind speed' + " | " + 'Mért szélsebesség' + ": " + str(f"device wind = {cdwind}")))
 						if not self.SensorTimedOut(idx, device["Name"], device["LastUpdate"]):
 							listwind.append(cdwind)
 					else:
-						Domoticz.Error(("device: {}-{} is not a Wind sensor".format(device["idx"], device["Name"])) + ' | Hiba részletei')
+						Domoticz.Error(('Invalid sensor type' + " | " + 'Hibás érzékelőtípus' + ": " + str("device: {}-{} is not a Wind sensor".format(device["idx"], device["Name"]))))
 
 
 		# Calculate average wind speed | számítsa ki az átlagos szélsebességet
@@ -1293,7 +1293,7 @@ class BasePlugin:
 
 		Devices[18].Update(nValue=0, sValue=svalue)
 
-		Domoticz.Debug((f"self.wind svalue = {svalue}") + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Wind sensor Domoticz value' + " | " + 'Szélérzékelő Domoticz-értéke' + ": " + str(f"self.wind svalue = {svalue}")))
 
 		return noerror
 
@@ -1314,13 +1314,13 @@ class BasePlugin:
 				idx = int(device["idx"])
 				if idx in self.VibrationSensor:
 					if "Data" in device:
-						Domoticz.Debug((f"self.vibration_limit = {self.vibration_limit}") + ' | Mért vagy számított érték')
-						Domoticz.Debug(("device: {}-{} = {}".format(device["idx"], device["Name"], device["Data"])) + ' | Mért vagy számított érték')
+						Domoticz.Debug(('Configured vibration event' + " | " + 'Beállított rezgésesemény' + ": " + str(f"self.vibration_limit = {self.vibration_limit}")))
+						Domoticz.Debug(('Sensor reading' + " | " + 'Érzékelőérték' + ": " + str("device: {}-{} = {}".format(device["idx"], device["Name"], device["Data"]))))
 						if device["Data"] == self.vibration_limit :
 							self.aktvibration = True
-							Domoticz.Debug((f"self.aktvibration = {self.aktvibration}") + ' | Mért vagy számított érték')
+							Domoticz.Debug(('Vibration detected' + " | " + 'Rezgés észlelve' + ": " + str(f"self.aktvibration = {self.aktvibration}")))
 					else:
-						Domoticz.Error(("device: {}-{} is not a Vibration sensor".format(device["idx"], device["Name"])) + ' | Hiba részletei')
+						Domoticz.Error(('Invalid sensor type' + " | " + 'Hibás érzékelőtípus' + ": " + str("device: {}-{} is not a Vibration sensor".format(device["idx"], device["Name"]))))
 
 
 		nvalue = 1 if self.aktvibration else 0
@@ -1328,7 +1328,7 @@ class BasePlugin:
 
 		Devices[20].Update(nValue=nvalue, sValue=svalue)
 
-		Domoticz.Debug((f"self.aktvibration → nValue = {nvalue}, sValue = {svalue}") + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Vibration device status' + " | " + 'Rezgésérzékelő állapota' + ": " + str(f"self.aktvibration → nValue = {nvalue}, sValue = {svalue}")))
 
 		return noerror
 
@@ -1351,11 +1351,11 @@ class BasePlugin:
 
 		if timedout:
 			if self.ActiveSensors[idx]:
-				Domoticz.Error(("skipping timed out temperature sensor '{}'".format(name)) + ' | Hiba részletei')
+				Domoticz.Error(f"Sensor timeout, ignoring device: {name} | Érzékelő időtúllépés, eszköz kihagyása: {name}")
 				self.ActiveSensors[idx] = False
 		else:
 			if not self.ActiveSensors[idx]:
-				self.WriteLog("previously timed out temperature sensor '{}' is back online".format(name), "Status")
+				self.WriteLog(f"Sensor online again: {name} | Az érzékelő ismét elérhető: {name}", "Status")
 				self.ActiveSensors[idx] = True
 
 		return timedout
@@ -1413,7 +1413,7 @@ class BasePlugin:
 
 			
 
-			Domoticz.Debug((f"max_date = {max_date}") + ' | Mért vagy számított érték')
+			Domoticz.Debug(('Forecast last available timestamp' + " | " + 'Előrejelzés utolsó időpontja' + ": " + str(f"max_date = {max_date}")))
 			
 
 			# Forecast refresh condition | --- FRISSÍTÉS FELTÉTELE ---
@@ -1534,14 +1534,14 @@ class BasePlugin:
 			self.now_lux = 0.0
 			Domoticz.Debug("Nighttime detected, lux set to zero | Éjszakai időszak, luxérték nullázva")
 
-		Domoticz.Debug((f"now_outtemp = {self.now_outtemp}") + ' | Mért vagy számított érték')
-		Domoticz.Debug((f"now_lux = {self.now_lux}") + ' | Mért vagy számított érték')
-		Domoticz.Debug((f"now_rain = {self.now_rain}") + ' | Mért vagy számított érték')
-		Domoticz.Debug((f"now_wind = {self.now_wind}") + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Forecast outdoor temperature' + " | " + 'Előrejelzett külső hőmérséklet' + ": " + str(f"now_outtemp = {self.now_outtemp}")))
+		Domoticz.Debug(('Forecast illuminance' + " | " + 'Előrejelzett megvilágítás' + ": " + str(f"now_lux = {self.now_lux}")))
+		Domoticz.Debug(('Forecast precipitation' + " | " + 'Előrejelzett csapadék' + ": " + str(f"now_rain = {self.now_rain}")))
+		Domoticz.Debug(('Forecast wind speed' + " | " + 'Előrejelzett szélsebesség' + ": " + str(f"now_wind = {self.now_wind}")))
 
 
 	def LastSwitchTime(self, redonyidx):
-		Domoticz.Debug((f"LastSwitchTime redonyidx: {redonyidx}") + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Shutter log device ID' + " | " + 'Redőnynapló eszközazonosítója' + ": " + str(f"LastSwitchTime redonyidx: {redonyidx}")))
 
 		device = DomoticzAPI(f"type=command&param=getlightlog&range=day&idx={redonyidx}")
 
@@ -1588,7 +1588,7 @@ class BasePlugin:
 		now_timestamp = time.time()
 		SwitchTime = (last_update_timestamp + 2 * 60) < now_timestamp
 
-		Domoticz.Debug((f"LastSwitchTime = {SwitchTime}") + ' | Részletes naplóadat')
+		Domoticz.Debug(('Shutter movement cooldown elapsed' + " | " + 'Eltelt a redőnymozgatási várakozási idő' + ": " + str(f"LastSwitchTime = {SwitchTime}")))
 		return SwitchTime
 
 	def addfavorite(self, deviceidx):
@@ -1602,7 +1602,7 @@ class BasePlugin:
 	def applyfavorites(self):
 
 		Domoticz.Debug(
-			"applyfavorites(): _fav_actions = {}".format(self._fav_actions)
+			('Pending favorite updates' + " | " + 'Függő kedvencmódosítások' + ": " + str("applyfavorites(): _fav_actions = {}".format(self._fav_actions)))
 		)
 
 		for idx, action in self._fav_actions.items():
@@ -1756,15 +1756,15 @@ def DumpConfigToLog():
 	for x in Parameters:
 		if Parameters[x] != "":
 			value = "***" if x.lower() in ("password", "username") else str(Parameters[x])
-			Domoticz.Debug(("'" + x + "':'" + value + "'") + ' | Részletes naplóadat')
-	Domoticz.Debug(("Device count: " + str(len(Devices))) + ' | Mért vagy számított érték')
+			Domoticz.Debug(("Configuration parameter | Konfigurációs paraméter: " + str(x) + " = " + str(value)))
+	Domoticz.Debug(('Domoticz device count' + " | " + 'Domoticz-eszközök száma' + ": " + str("Device count: " + str(len(Devices)))))
 	for x in Devices:
-		Domoticz.Debug(("Device: " + str(x) + " - " + str(Devices[x])) + ' | Mért vagy számított érték')
-		Domoticz.Debug(("Device ID: '" + str(Devices[x].ID) + "'") + ' | Mért vagy számított érték')
-		Domoticz.Debug(("Device Name: '" + Devices[x].Name + "'") + ' | Mért vagy számított érték')
-		Domoticz.Debug(("Device nValue: " + str(Devices[x].nValue)) + ' | Mért vagy számított érték')
-		Domoticz.Debug(("Device sValue: '" + Devices[x].sValue + "'") + ' | Mért vagy számított érték')
-		Domoticz.Debug(("Device LastLevel: " + str(Devices[x].LastLevel)) + ' | Mért vagy számított érték')
+		Domoticz.Debug(('Domoticz device' + " | " + 'Domoticz-eszköz' + ": " + str("Device: " + str(x) + " - " + str(Devices[x]))))
+		Domoticz.Debug(('Domoticz device ID' + " | " + 'Domoticz-eszközazonosító' + ": " + str("Device ID: '" + str(Devices[x].ID) + "'")))
+		Domoticz.Debug(('Domoticz device name' + " | " + 'Domoticz-eszköznév' + ": " + str("Device Name: '" + Devices[x].Name + "'")))
+		Domoticz.Debug(('Domoticz device numeric value' + " | " + 'Domoticz-eszköz numerikus értéke' + ": " + str("Device nValue: " + str(Devices[x].nValue))))
+		Domoticz.Debug(('Domoticz device string value' + " | " + 'Domoticz-eszköz szöveges értéke' + ": " + str("Device sValue: '" + Devices[x].sValue + "'")))
+		Domoticz.Debug(('Domoticz device last level' + " | " + 'Domoticz-eszköz utolsó szintje' + ": " + str("Device LastLevel: " + str(Devices[x].LastLevel))))
 	return
 
 
