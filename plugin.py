@@ -1142,7 +1142,8 @@ class BasePlugin:
 				if entry_timestamp is None:
 					continue
 
-				if start_date_timestamp <= entry_timestamp < today_timestamp:
+				# Exclude the current incomplete day | A még nem teljes mai nap kihagyása
+				if start_date_timestamp <= entry_timestamp < time.mktime(datetime.now().date().timetuple()):
 					filtered_data.append(entry)
 
 			if not filtered_data:
@@ -1172,8 +1173,8 @@ class BasePlugin:
 			# Set minimum and maximum lux | Set min_lux and max_lux values
 			Domoticz.Debug(('Historical minimum lux values' + " | " + 'Korábbi minimális luxértékek' + ": " + str("minlux_values = " + format(minlux_values))))
 			Domoticz.Debug(('Historical maximum lux values' + " | " + 'Korábbi maximális luxértékek' + ": " + str("maxlux_values = " + format(maxlux_values))))
-			self.min_lux = round(sum(minlux_values) / len(minlux_values), 2) if minlux_values else 1
-			self.max_lux = round(sum(maxlux_values) / len(maxlux_values), 2) if maxlux_values else 10000
+			self.min_lux = min(minlux_values) if minlux_values else 0
+			self.max_lux = max(maxlux_values) if maxlux_values else 0
 
 			Domoticz.Debug(('Calculated lux extrema' + " | " + 'Számított luxszélsőértékek' + ": " + str(f"self.min_lux = {self.min_lux}, self.max_lux = {self.max_lux}")))
 
@@ -1222,16 +1223,15 @@ class BasePlugin:
 						Domoticz.Error(('Invalid sensor type' + " | " + 'Hibás érzékelőtípus' + ": " + str(f"device: {device['idx']}-{device['Name']} is not a Lux sensor")))
 
 		# Calculate average illuminance | Átlagos megvilágítás számítása
+		self.luxhiszterezis = float((self.max_lux * self.lux_hiszterezis) / 100)
 		nblux = len(listlux)
 		Domoticz.Debug(f"Forecast lux | Előrejelzett lux: {self.now_lux}")
 
 		if nblux > 0:
 			self.aktlux = round(sum(listlux) / nblux, 1)
-			self.luxhiszterezis = max(1.0, max(self.aktlux, self.lastlux) * self.lux_hiszterezis / 100)
 
-			if self.aktlux <= self.nyitlux or self.lastlux <= self.nyitlux < self.aktlux:
-				self.lux = self.aktlux
-			elif abs(self.aktlux - self.lastlux) > self.luxhiszterezis:
+			# Original lux hysteresis logic | Eredeti luxhiszterézis-logika
+			if self.aktlux > self.eroslux + self.luxhiszterezis or self.aktlux < self.eroslux - self.luxhiszterezis:
 				self.lux = self.aktlux
 			else:
 				self.lux = self.lastlux
