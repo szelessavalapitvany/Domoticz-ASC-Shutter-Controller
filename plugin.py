@@ -1017,7 +1017,7 @@ class BasePlugin:
 		Domoticz.Debug(('Shutter command' + " | " + 'Redőnyparancs' + ": " + str("command: "+format(command))))
 		devicesAPI = DomoticzAPI(
 			"type=devices&filter=light&order=Name" 
-			if float(Parameters["DomoticzVersion"]) <= 2023.1 
+			if float(Parameters["DomoticzVersion"].split()[0]) <= 2023.1 
 			else "type=command&param=getdevices&filter=light&order=Name"
 		)
 		if isinstance(devicesAPI, dict) and isinstance(devicesAPI.get("result"), list):
@@ -1039,7 +1039,7 @@ class BasePlugin:
 		listouttemps = []
 		devicesAPI = DomoticzAPI(
 			"type=devices&filter=temp&order=Name" 
-			if float(Parameters["DomoticzVersion"]) <= 2023.1 
+			if float(Parameters["DomoticzVersion"].split()[0]) <= 2023.1 
 			else "type=command&param=getdevices&filter=temp&order=Name"
 		)
 		if isinstance(devicesAPI, dict) and isinstance(devicesAPI.get("result"), list):
@@ -1203,7 +1203,7 @@ class BasePlugin:
 
 		luxdevicesAPI = DomoticzAPI(
 			"type=devices&filter=utility&order=Name" 
-			if float(Parameters["DomoticzVersion"]) <= 2023.1 
+			if float(Parameters["DomoticzVersion"].split()[0]) <= 2023.1 
 			else "type=command&param=getdevices&filter=utility&order=Name"
 		)
 
@@ -1263,7 +1263,7 @@ class BasePlugin:
 		listwind = []
 		devicesAPI = DomoticzAPI(
 			"type=devices&order=Name" 
-			if float(Parameters["DomoticzVersion"]) <= 2023.1 
+			if float(Parameters["DomoticzVersion"].split()[0]) <= 2023.1 
 			else "type=command&param=getdevices&order=Name"
 		)
 		if isinstance(devicesAPI, dict) and isinstance(devicesAPI.get("result"), list):
@@ -1306,7 +1306,7 @@ class BasePlugin:
 		listvibration = []
 		devicesAPI = DomoticzAPI(
 			"type=devices&order=Name" 
-			if float(Parameters["DomoticzVersion"]) <= 2023.1 
+			if float(Parameters["DomoticzVersion"].split()[0]) <= 2023.1 
 			else "type=command&param=getdevices&order=Name"
 		)
 		if isinstance(devicesAPI, dict) and isinstance(devicesAPI.get("result"), list):
